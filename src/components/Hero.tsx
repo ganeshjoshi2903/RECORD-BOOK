@@ -4,7 +4,7 @@ import { ArrowRight } from 'lucide-react';
 const Hero = () => {
   return (
     <section className="relative min-h-screen bg-gradient-to-br from-gray-50 via-white to-teal-50 overflow-hidden">
-      {/}
+        
       <div className="absolute inset-0" style={{
         backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px)',
         backgroundSize: '20px 20px',
