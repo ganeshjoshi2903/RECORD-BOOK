@@ -1,20 +1,18 @@
-// ✅ Customer Management Page
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { UserPlus, Users2 } from "lucide-react";
 import { FaDownload, FaBell } from "react-icons/fa";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import axios from "axios";
 
-// ✅ Type for Customer History
 type HistoryItem = {
   type: "Credit" | "Debit";
   amount: number;
   date: string;
 };
 
-// ✅ Type for Customer
 type Customer = {
-  id: number;
+  _id: string;
   name: string;
   phone: string;
   photo: string;
@@ -22,46 +20,62 @@ type Customer = {
   history: HistoryItem[];
 };
 
-const CustomerManagement: React.FC = () => {
-  const [customers, setCustomers] = useState<Customer[]>([
-    {
-      id: 1,
-      name: "Rahul Mehta",
-      phone: "9876543210",
-      photo: "https://i.pravatar.cc/40?img=3",
-      balance: 1000,
-      history: [
-        { type: "Credit", amount: 1500, date: "2025-07-10" },
-        { type: "Debit", amount: 500, date: "2025-07-12" },
-      ],
-    },
-  ]);
+// ✅ Your backend base URL here
+const BACKEND_URL = "http://localhost:8000";
 
+const CustomerManagement: React.FC = () => {
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [newCustomer, setNewCustomer] = useState({
     name: "",
     phone: "",
     photo: "",
     balance: "",
   });
-
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const handleAddCustomer = () => {
-    const id = customers.length + 1;
-    if (newCustomer.name && newCustomer.phone) {
-      const newEntry: Customer = {
-        id,
-        name: newCustomer.name,
-        phone: newCustomer.phone,
-        photo: newCustomer.photo || `https://i.pravatar.cc/40?img=${id}`,
-        balance: parseFloat(newCustomer.balance || "0"),
-        history: [],
-      };
-      setCustomers([...customers, newEntry]);
-      setNewCustomer({ name: "", phone: "", photo: "", balance: "" });
+  // ✅ Fetch customers from API
+  const fetchCustomers = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${BACKEND_URL}/api/customers`);
+      console.log("Customers fetched:", res.data);
+      setCustomers(res.data);
+    } catch (err) {
+      console.error("Error fetching customers:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
+
+  // ✅ Add a new customer
+  const handleAddCustomer = async () => {
+    if (newCustomer.name && newCustomer.phone) {
+      const payload = {
+        name: newCustomer.name,
+        phone: newCustomer.phone,
+        photo:
+          newCustomer.photo ||
+          `https://i.pravatar.cc/40?img=${Math.floor(Math.random() * 70) + 1}`,
+        balance: parseFloat(newCustomer.balance) || 0,
+        history: [],
+      };
+
+      try {
+        await axios.post(`${BACKEND_URL}/api/customers`, payload);
+        setNewCustomer({ name: "", phone: "", photo: "", balance: "" });
+        fetchCustomers(); // refresh list
+      } catch (err) {
+        console.error("Error adding customer:", err);
+      }
+    }
+  };
+
+  // ✅ Export individual statement to PDF
   const exportStatement = (cust: Customer) => {
     const doc = new jsPDF();
     doc.text(`${cust.name} - Statement`, 10, 10);
@@ -82,7 +96,7 @@ const CustomerManagement: React.FC = () => {
         <Users2 className="w-6 h-6" /> Customer Management
       </h2>
 
-      {/* Add New Customer */}
+      {/* ✅ Add Customer Form */}
       <div className="bg-white p-4 rounded shadow space-y-4">
         <h3 className="text-lg font-semibold flex gap-2 items-center">
           <UserPlus className="w-5 h-5" /> Add New Customer
@@ -108,7 +122,7 @@ const CustomerManagement: React.FC = () => {
           />
           <input
             type="url"
-            placeholder="Photo URL (optional)"
+            placeholder="Photo URL"
             className="border px-3 py-2 rounded"
             value={newCustomer.photo}
             onChange={(e) =>
@@ -133,47 +147,53 @@ const CustomerManagement: React.FC = () => {
         </button>
       </div>
 
-      {/* Search */}
+      {/* ✅ Search */}
       <input
         type="text"
-        className="border px-4 py-2 rounded w-full"
         placeholder="Search Customer"
+        className="border px-4 py-2 rounded w-full"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
 
-      {/* List */}
+      {/* ✅ Customer List */}
       <div className="grid gap-4">
-        {filtered.map((cust) => (
-          <div
-            key={cust.id}
-            className="border rounded shadow p-4 flex justify-between items-center"
-          >
-            <div className="flex gap-4 items-center">
-              <img
-                src={cust.photo}
-                alt={cust.name}
-                className="w-10 h-10 rounded-full"
-              />
-              <div>
-                <h4 className="font-semibold">{cust.name}</h4>
-                <p className="text-sm text-gray-600">📞 {cust.phone}</p>
-                <p className="text-sm">💰 Balance: ₹{cust.balance}</p>
+        {loading ? (
+          <p>Loading customers...</p>
+        ) : filtered.length > 0 ? (
+          filtered.map((cust) => (
+            <div
+              key={cust._id}
+              className="border rounded shadow p-4 flex justify-between items-center"
+            >
+              <div className="flex gap-4 items-center">
+                <img
+                  src={cust.photo}
+                  alt={cust.name}
+                  className="w-10 h-10 rounded-full"
+                />
+                <div>
+                  <h4 className="font-semibold">{cust.name}</h4>
+                  <p className="text-sm text-gray-600">📞 {cust.phone}</p>
+                  <p className="text-sm">💰 Balance: ₹{cust.balance}</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded"
+                  onClick={() => exportStatement(cust)}
+                >
+                  <FaDownload className="inline mr-1" /> PDF
+                </button>
+                <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded">
+                  <FaBell className="inline mr-1" /> Reminder
+                </button>
               </div>
             </div>
-            <div className="flex gap-2">
-              <button
-                className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded"
-                onClick={() => exportStatement(cust)}
-              >
-                <FaDownload className="inline mr-1" /> PDF
-              </button>
-              <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded">
-                <FaBell className="inline mr-1" /> Reminder
-              </button>
-            </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          <p>No customers found.</p>
+        )}
       </div>
     </div>
   );
