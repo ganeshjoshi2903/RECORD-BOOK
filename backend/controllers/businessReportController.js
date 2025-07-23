@@ -1,20 +1,38 @@
-const BusinessReport = require('../models/BusinessReport');
+import BusinessReport from '../models/BusinessReport.js';
 
-exports.createReport = async (req, res) => {
+export const createReport = async (req, res) => {
   try {
-    const report = new BusinessReport(req.body);
-    await report.save();
-    res.status(201).json(report);
+    const { type, category, amount, customer, date } = req.body;
+
+    const newReport = new BusinessReport({
+      type,
+      category,
+      amount,
+      customer,
+      date
+    });
+
+    const savedReport = await newReport.save();
+    res.status(201).json(savedReport);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ message: 'Failed to create report' });
   }
 };
 
-exports.getReports = async (req, res) => {
+export const getReports = async (req, res) => {
   try {
     const reports = await BusinessReport.find();
-    res.status(200).json(reports);
+    res.json(reports);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ message: 'Failed to fetch reports' });
+  }
+};
+
+export const getMonthlyReportSummary = async (req, res) => {
+  try {
+    // Add your monthly summary logic here if needed
+    res.status(200).json({ message: 'Monthly summary data (dummy)' });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch summary' });
   }
 };

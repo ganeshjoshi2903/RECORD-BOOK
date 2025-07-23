@@ -1,47 +1,37 @@
-const User = require('../models/User');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js'; // Update this path if needed
 
-// SIGNUP Controller
-const signup = async (req, res) => {
+export const signup = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-
+    const { email, password, name } = req.body;
     const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ message: 'Email already registered' });
+    if (existingUser) return res.status(400).json({ message: 'User already exists' });
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ name, email, password: hashedPassword });
-    await user.save();
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const result = await User.create({ email, password: hashedPassword, name });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '3d' });
+    const token = jwt.sign({ email: result.email, id: result._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-    res.status(201).json({ message: 'User registered successfully', token });
+    res.status(201).json({ result, token });
   } catch (err) {
-    res.status(500).json({ message: 'Signup failed', error: err.message });
+    res.status(500).json({ message: "Something went wrong" });
   }
 };
 
-// LOGIN Controller
-const login = async (req, res) => {
+export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    const existingUser = await User.findOne({ email });
+    if (!existingUser) return res.status(404).json({ message: 'User not found' });
 
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: 'Invalid email or password' });
+    const isPasswordCorrect = await bcrypt.compare(password, existingUser.password);
+    if (!isPasswordCorrect) return res.status(400).json({ message: 'Invalid credentials' });
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: 'Invalid email or password' });
+    const token = jwt.sign({ email: existingUser.email, id: existingUser._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '3d' });
-
-    res.status(200).json({ message: 'Login successful', token });
+    res.status(200).json({ result: existingUser, token });
   } catch (err) {
-    res.status(500).json({ message: 'Login failed', error: err.message });
+    res.status(500).json({ message: "Something went wrong" });
   }
-};
-
-module.exports = {
-  signup,
-  login
 };

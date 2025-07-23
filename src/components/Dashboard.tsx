@@ -1,52 +1,97 @@
-import React from 'react';
-import { BookOpen, Users, TrendingUp, Shield } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { ArrowDownCircle, ArrowUpCircle } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
 
-const features = [
-  {
-    icon: BookOpen,
-    title: 'Digital Records',
-    description: 'Keep all your business records organized digitally',
-    color: 'bg-teal-100 text-teal-700'
-  },
-  {
-    icon: Users,
-    title: 'Customer Management',
-    description: 'Track customers and their payment history',
-    color: 'bg-blue-100 text-blue-700'
-  },
-  {
-    icon: TrendingUp,
-    title: 'Business Reports',
-    description: 'Get insights with detailed analytics',
-    color: 'bg-indigo-100 text-indigo-700'
-  },
-  {
-    icon: Shield,
-    title: 'Secure & Safe',
-    description: 'Your data is protected and backed up',
-    color: 'bg-green-100 text-green-700'
-  },
-];
+const Dashboard: React.FC = () => {
+  const [totalIncome, setTotalIncome] = useState(0);
+  const [totalExpense, setTotalExpense] = useState(0);
+  const [totalDue, setTotalDue] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-const Dashboard = () => {
+  const fetchDashboardData = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await fetch("http://localhost:8000/api/dashboard", {
+        headers: {
+          Authorization: `Bearer ${token}`, // ✅ Fixed this line
+        },
+      });
+
+      const data = await res.json();
+
+      setTotalIncome(data.totalIncome || 0);
+      setTotalExpense(data.totalExpense || 0);
+      setTotalDue(data.totalDue || 0);
+    } catch (err) {
+      console.error("Error fetching dashboard data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const balance = totalIncome - totalExpense;
+
+  const chartData = [
+    { name: "Income", value: totalIncome },
+    { name: "Expense", value: totalExpense },
+    { name: "Due", value: totalDue },
+    { name: "Balance", value: balance },
+  ];
+
+  if (loading) return <div className="p-4">Loading...</div>;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white to-blue-50 py-16 px-4 sm:px-6 lg:px-8">
-      <h1 className="text-3xl font-bold text-center text-gray-800 mb-10">Welcome to Your Dashboard</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 max-w-4xl mx-auto">
-        {features.map((feature, index) => (
-          <div
-            key={index}
-            className="p-6 bg-white rounded-xl shadow-md flex items-start space-x-4 transition-transform hover:scale-[1.02]"
-          >
-            <div className={`p-3 rounded-lg ${feature.color}`}>
-              <feature.icon className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">{feature.title}</h3>
-              <p className="text-gray-600">{feature.description}</p>
-            </div>
+    <div className="p-6 space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div className="bg-green-100 p-4 rounded-xl">
+          <h2 className="text-lg font-semibold text-green-800">Total Income</h2>
+          <div className="text-2xl font-bold flex items-center gap-2 text-green-700">
+            <ArrowUpCircle className="w-6 h-6" /> ₹{totalIncome}
           </div>
-        ))}
+        </div>
+
+        <div className="bg-red-100 p-4 rounded-xl">
+          <h2 className="text-lg font-semibold text-red-800">Total Expense</h2>
+          <div className="text-2xl font-bold flex items-center gap-2 text-red-700">
+            <ArrowDownCircle className="w-6 h-6" /> ₹{totalExpense}
+          </div>
+        </div>
+
+        <div className="bg-yellow-100 p-4 rounded-xl">
+          <h2 className="text-lg font-semibold text-yellow-800">Total Due</h2>
+          <div className="text-2xl font-bold text-yellow-700">₹{totalDue}</div>
+        </div>
+
+        <div className="bg-blue-100 p-4 rounded-xl">
+          <h2 className="text-lg font-semibold text-blue-800">Balance</h2>
+          <div className="text-2xl font-bold text-blue-700">₹{balance}</div>
+        </div>
+      </div>
+
+      <div className="bg-white p-6 rounded-xl shadow">
+        <h2 className="text-xl font-semibold mb-4">Overview Chart</h2>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip />
+            <Bar dataKey="value" fill="#8884d8" />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );

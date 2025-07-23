@@ -1,27 +1,29 @@
-const Customer = require('../models/Customer');
+import Customer from '../models/Customer.js';
 
 // GET all customers
-const getAllCustomers = async (req, res) => {
+export const getAllCustomers = async (req, res) => {
   try {
     const customers = await Customer.find();
     res.json(customers);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch customers' });
+    res.status(500).json({ message: 'Failed to fetch customers' });
   }
 };
 
-// POST new customer
-const createCustomer = async (req, res) => {
+// POST create a customer
+export const createCustomer = async (req, res) => {
   try {
-    const newCustomer = new Customer(req.body);
-    const saved = await newCustomer.save();
-    res.status(201).json(saved);
-  } catch (err) {
-    res.status(400).json({ error: 'Failed to create customer' });
-  }
-};
+    const { name, email, phone } = req.body;
 
-module.exports = {
-  getAllCustomers,
-  createCustomer
+    const newCustomer = new Customer({
+      name,
+      email,
+      phone
+    });
+
+    const savedCustomer = await newCustomer.save();
+    res.status(201).json(savedCustomer);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to create customer' });
+  }
 };

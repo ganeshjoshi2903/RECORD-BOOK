@@ -1,17 +1,11 @@
-const mongoose = require('mongoose');
-
-const historySchema = new mongoose.Schema({
-  type: { type: String, enum: ['Credit', 'Debit'], required: true },
-  amount: { type: Number, required: true },
-  date: { type: String, required: true },
-});
+import mongoose from 'mongoose';
 
 const customerSchema = new mongoose.Schema({
   name: String,
-  phone: String,
-  photo: String,
-  balance: Number,
-  history: [historySchema],
+  email: String,
+  phone: String
 });
 
-module.exports = mongoose.model('Customer', customerSchema);
+const Customer = mongoose.model('Customer', customerSchema);
+
+export default Customer;

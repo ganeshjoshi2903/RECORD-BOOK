@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   BookOpen,
   Users,
@@ -8,9 +8,12 @@ import {
   Bell,
   UserCircle,
   User,
+  LogOut,
 } from 'lucide-react';
 
 const DashboardLayout = () => {
+  const navigate = useNavigate();
+
   const links = [
     { name: 'Digital Records', path: 'records', icon: BookOpen },
     { name: 'Customer Management', path: 'customers', icon: Users },
@@ -19,6 +22,11 @@ const DashboardLayout = () => {
     { name: 'Notifications', path: 'notifications', icon: Bell },
     { name: 'Profile', path: 'profile', icon: User },
   ];
+
+  const handleLogout = () => {
+    localStorage.removeItem('token'); // remove token from localStorage
+    navigate('/'); // redirect to homepage or login
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -70,6 +78,15 @@ const DashboardLayout = () => {
               <UserCircle className="w-6 h-6" />
               <span className="text-sm font-medium">user@gmail.com</span>
             </NavLink>
+
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="ml-2 flex items-center space-x-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md shadow-md transition-all duration-200"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="text-sm font-semibold">Logout</span>
+            </button>
           </div>
         </header>
 

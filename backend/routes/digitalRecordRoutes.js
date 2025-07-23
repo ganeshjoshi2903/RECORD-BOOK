@@ -1,8 +1,9 @@
-const express = require('express');
+import express from 'express';
+import { createRecord, getRecords } from '../controllers/digitalRecordController.js';
+
 const router = express.Router();
-const { createRecord, getAllRecords } = require('../controllers/digitalRecordController');
 
 router.post('/', createRecord);
-router.get('/', getAllRecords);
+router.get('/', getRecords);
 
-module.exports = router;
+export default router;

@@ -9,6 +9,7 @@ import SignUp from './components/Signup';
 
 import DashboardLayout from './components/DashboardLayout';
 
+import Dashboard from './components/Dashboard'; // ✅ Import your main dashboard page
 import DigitalRecords from './components/pages/DigitalRecords';
 import CustomerManagement from './components/pages/CustomerManagement';
 import BusinessReports from './components/pages/BusinessReports';
@@ -55,6 +56,7 @@ function App() {
 
           {/* Dashboard with Nested Routes */}
           <Route path="/dashboard" element={<DashboardLayout />}>
+            <Route index element={<Dashboard />} /> {/* ✅ Default dashboard route */}
             <Route path="records" element={<DigitalRecords />} />
             <Route path="customers" element={<CustomerManagement />} />
             <Route path="reports" element={<BusinessReports />} />

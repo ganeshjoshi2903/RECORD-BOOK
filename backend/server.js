@@ -1,21 +1,42 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-require("dotenv").config();
+// server.js
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import connectDB from './config/db.js';
 
+import authRoutes from './routes/authRoutes.js';
+import recordRoutes from './routes/digitalRecordRoutes.js';
+import customerRoutes from './routes/customerRoutes.js';
+import businessReportRoutes from './routes/businessReportRoutes.js';
+import dashboardRoutes from './routes/dashboardRoutes.js';
+
+dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-app.use(cors());
+// Connect MongoDB
+connectDB();
+
+// Middleware
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+}));
 app.use(express.json());
 
-const digitalRecordRoutes = require("./routes/digitalRecordRoutes");
-app.use("/api/records", digitalRecordRoutes);
+// API Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/records', recordRoutes);
+app.use('/api/customers', customerRoutes);
+app.use('/api/business', businessReportRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
-mongoose
-  .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => {
-    console.log("MongoDB connected");
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-  })
-  .catch((err) => console.error("MongoDB connection error:", err));
+// Default route
+app.get('/', (req, res) => {
+  res.send('API is running...');
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`✅ Server running on http://localhost:${PORT}`);
+});

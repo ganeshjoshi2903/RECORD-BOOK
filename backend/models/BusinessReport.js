@@ -1,10 +1,17 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
-const BusinessReportSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  date: { type: Date, required: true },
-  content: { type: String },
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
-}, { timestamps: true });
+const businessReportSchema = new mongoose.Schema({
+  type: {
+    type: String,
+    enum: ['Income', 'Expense', 'Due'],
+    required: true,
+  },
+  category: String,
+  amount: Number,
+  customer: String,
+  date: String,
+});
 
-module.exports = mongoose.model('BusinessReport', BusinessReportSchema);
+const BusinessReport = mongoose.model('BusinessReport', businessReportSchema);
+
+export default BusinessReport;

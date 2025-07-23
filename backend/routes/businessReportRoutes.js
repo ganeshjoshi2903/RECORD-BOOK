@@ -1,8 +1,14 @@
-const express = require('express');
+import express from 'express';
+import {
+  createReport,
+  getReports,
+  getMonthlyReportSummary
+} from '../controllers/businessReportController.js';
+
 const router = express.Router();
-const { createReport, getReports } = require('../controllers/businessReportController');
 
 router.post('/create', createReport);
 router.get('/', getReports);
+router.get('/monthly-summary', getMonthlyReportSummary);
 
-module.exports = router;
+export default router;
