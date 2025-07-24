@@ -1,45 +1,38 @@
-import React from 'react';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 
 const Notification = () => {
-  const notifications = [
-    {
-      id: 1,
-      message: "Payment received from Rahul Traders",
-      time: "2 hours ago",
-      type: "success",
-    },
-    {
-      id: 2,
-      message: "Reminder: Collect payment from Priya Enterprises",
-      time: "Yesterday",
-      type: "warning",
-    },
-    {
-      id: 3,
-      message: "Your data was backed up successfully",
-      time: "2 days ago",
-      type: "info",
-    },
-  ];
+  const [notifications, setNotifications] = useState([]);
+  const token = localStorage.getItem("token");
 
-  const typeColor = {
-    success: "bg-green-100 text-green-700",
-    warning: "bg-yellow-100 text-yellow-700",
-    info: "bg-blue-100 text-blue-700",
-  };
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const res = await axios.get("http://localhost:8000/api/notifications/user", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setNotifications(res.data);
+      } catch (error) {
+        console.error("Failed to fetch notifications:", error);
+      }
+    };
+
+    fetchNotifications();
+  }, [token]);
+
+  if (!notifications.length) return <div>No notifications available.</div>;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-4">
-      <h2 className="text-2xl font-semibold text-teal-600">Notifications</h2>
-      {notifications.map((note) => (
-        <div
-          key={note.id}
-          className={`p-4 rounded-md shadow-sm ${typeColor[note.type as keyof typeof typeColor]} border`}
-        >
-          <p className="font-medium">{note.message}</p>
-          <span className="text-sm">{note.time}</span>
-        </div>
-      ))}
+    <div className="p-6">
+      <h2 className="text-xl font-semibold mb-4">Your Notifications</h2>
+      <ul className="space-y-2">
+        {notifications.map((notif: any, i) => (
+          <li key={i} className="border p-3 rounded bg-gray-50 shadow">
+            <strong>{notif.title}</strong>
+            <p>{notif.message}</p>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };

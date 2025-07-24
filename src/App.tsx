@@ -8,14 +8,16 @@ import Login from './components/Login';
 import SignUp from './components/Signup';
 
 import DashboardLayout from './components/DashboardLayout';
+import Dashboard from './components/Dashboard';
 
-import Dashboard from './components/Dashboard'; // ✅ Import your main dashboard page
 import DigitalRecords from './components/pages/DigitalRecords';
 import CustomerManagement from './components/pages/CustomerManagement';
 import BusinessReports from './components/pages/BusinessReports';
 import SecureSafe from './components/pages/SecureSafe';
 import Profile from './components/pages/Profile';
 import Notifications from './components/pages/Notifications';
+import EditProfile from './components/pages/EditProfile';
+import ChangePassword from './components/pages/ChangePassword';
 
 function App() {
   return (
@@ -35,34 +37,22 @@ function App() {
           />
 
           {/* Auth Pages */}
-          <Route
-            path="/login"
-            element={
-              <>
-                <Header />
-                <Login />
-              </>
-            }
-          />
-          <Route
-            path="/signup"
-            element={
-              <>
-                <Header />
-                <SignUp />
-              </>
-            }
-          />
+          <Route path="/login" element={<><Header /><Login /></>} />
+          <Route path="/signup" element={<><Header /><SignUp /></>} />
 
           {/* Dashboard with Nested Routes */}
           <Route path="/dashboard" element={<DashboardLayout />}>
-            <Route index element={<Dashboard />} /> {/* ✅ Default dashboard route */}
+            <Route index element={<Dashboard />} />
             <Route path="records" element={<DigitalRecords />} />
             <Route path="customers" element={<CustomerManagement />} />
             <Route path="reports" element={<BusinessReports />} />
             <Route path="security" element={<SecureSafe />} />
-            <Route path="profile" element={<Profile />} />
             <Route path="notifications" element={<Notifications />} />
+            
+            {/* Profile Routes */}
+            <Route path="profile" element={<Profile />} />
+            <Route path="profile/edit" element={<EditProfile />} />
+            <Route path="profile/password" element={<ChangePassword />} />
           </Route>
         </Routes>
       </div>

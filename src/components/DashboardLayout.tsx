@@ -6,7 +6,6 @@ import {
   TrendingUp,
   Shield,
   Bell,
-  UserCircle,
   User,
   LogOut,
 } from 'lucide-react';
@@ -24,8 +23,8 @@ const DashboardLayout = () => {
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem('token'); // remove token from localStorage
-    navigate('/'); // redirect to homepage or login
+    localStorage.removeItem('token');
+    navigate('/');
   };
 
   return (
@@ -70,13 +69,13 @@ const DashboardLayout = () => {
               </span>
             </NavLink>
 
-            {/* User Profile */}
+            {/* User Icon only */}
             <NavLink
               to="/dashboard/profile"
-              className="flex items-center space-x-2 text-gray-700 hover:text-gray-900"
+              className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors"
+              title="Profile"
             >
-              <UserCircle className="w-6 h-6" />
-              <span className="text-sm font-medium">user@gmail.com</span>
+              <User className="w-5 h-5 text-gray-700" />
             </NavLink>
 
             {/* Logout Button */}
