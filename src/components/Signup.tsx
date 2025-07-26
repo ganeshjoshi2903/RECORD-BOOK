@@ -34,7 +34,6 @@ const SignUp = () => {
         return;
       }
 
-      // ✅ Signup successful → redirect to login
       alert('Signup successful! Please login.');
       navigate('/login');
     } catch (err) {
@@ -43,60 +42,65 @@ const SignUp = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-teal-100 to-blue-100">
-      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
-        <h2 className="text-3xl font-bold text-center text-teal-600 mb-6">Create an Account</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-cyan-100 to-blue-100">
+      <div className="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-md">
+        <h2 className="text-3xl font-extrabold text-center text-cyan-700 mb-6">Create Your Account</h2>
 
-        <form className="space-y-5" onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Name</label>
+            <label className="block text-sm font-medium text-gray-600">Name</label>
             <input
               name="name"
               type="text"
               value={formData.name}
               onChange={handleChange}
-              className="w-full mt-1 px-4 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-teal-500"
+              placeholder="Enter your name"
+              className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-cyan-400 focus:outline-none"
               required
             />
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <label className="block text-sm font-medium text-gray-600">Email</label>
             <input
               name="email"
               type="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full mt-1 px-4 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-teal-500"
+              placeholder="Enter your email"
+              className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-cyan-400 focus:outline-none"
               required
             />
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700">Password</label>
+            <label className="block text-sm font-medium text-gray-600">Password</label>
             <input
               name="password"
               type="password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full mt-1 px-4 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-teal-500"
+              placeholder="Create a password"
+              className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-cyan-400 focus:outline-none"
               required
             />
           </div>
 
-          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+          {error && <p className="text-sm text-red-500 text-center">{error}</p>}
 
           <button
             type="submit"
-            className="w-full py-2 px-4 bg-teal-600 hover:bg-teal-700 text-white rounded-md font-semibold transition"
+            className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-md transition"
           >
             Sign Up
           </button>
         </form>
 
-        <p className="mt-4 text-sm text-center text-gray-600">
+        <p className="mt-5 text-center text-sm text-gray-500">
           Already have an account?{' '}
           <span
-            className="text-teal-600 hover:underline cursor-pointer"
             onClick={() => navigate('/login')}
+            className="text-cyan-600 hover:underline cursor-pointer"
           >
             Login
           </span>
