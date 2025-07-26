@@ -16,8 +16,8 @@ import BusinessReports from './components/pages/BusinessReports';
 import SecureSafe from './components/pages/SecureSafe';
 import Profile from './components/pages/Profile';
 import Notifications from './components/pages/Notifications';
-import EditProfile from './components/pages/EditProfile';
-import ChangePassword from './components/pages/ChangePassword';
+import EditProfile from './components/pages/Editprofile';
+import ChangePassword from './components/pages/changepassword';
 
 function App() {
   return (
