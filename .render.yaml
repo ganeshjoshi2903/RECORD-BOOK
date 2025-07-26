@@ -1,7 +1,0 @@
-# render.yaml
-services:
-  - type: static
-    name: recordbook-frontend
-    env: static
-    buildCommand: npm install && npm run build
-    staticPublishPath: dist
