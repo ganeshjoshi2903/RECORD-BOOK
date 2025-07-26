@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: my-react-app
+    env: node
+    buildCommand: npm run build
+    startCommand: serve -s dist
+    staticPublishPath: dist
+    buildFilter:
+      paths:
+        - package.json
+        - vite.config.ts
+        - tsconfig.json
+        - .render.yaml
