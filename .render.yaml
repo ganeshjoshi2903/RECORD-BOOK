@@ -1,11 +1,7 @@
+# .render.yaml
 services:
   - type: web
-    name: record-book-frontend
-    runtime: node
+    name: recordbook-frontend
+    runtime: static
     buildCommand: npm run build
-    startCommand: npm run preview
-    buildFilter: []
-    envVars:
-      - key: NODE_VERSION
-        value: 18
     staticPublishPath: dist
