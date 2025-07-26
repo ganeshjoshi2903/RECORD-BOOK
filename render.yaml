@@ -1,6 +1,6 @@
 services:
-  - type: static
+  - type: web
     name: recordbook-frontend
     env: static
-    buildCommand: cd src && npm install && npm run build
-    staticPublishPath: src/dist
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
