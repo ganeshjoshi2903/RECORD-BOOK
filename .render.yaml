@@ -1,13 +1,11 @@
 services:
   - type: web
-    name: my-react-app
-    env: node
+    name: record-book-frontend
+    runtime: node
     buildCommand: npm run build
-    startCommand: serve -s dist
+    startCommand: npm run preview
+    buildFilter: []
+    envVars:
+      - key: NODE_VERSION
+        value: 18
     staticPublishPath: dist
-    buildFilter:
-      paths:
-        - package.json
-        - vite.config.ts
-        - tsconfig.json
-        - .render.yaml
