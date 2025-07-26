@@ -1,10 +1,15 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import postcss from './postcss.config'; // ✅ Import your PostCSS config
+// tailwind.config.ts
+import type { Config } from 'tailwindcss';
 
-export default defineConfig({
-  plugins: [react()],
-  css: {
-    postcss,
+const config: Config = {
+  content: [
+    './index.html',
+    './src/**/*.{js,ts,jsx,tsx}',
+  ],
+  theme: {
+    extend: {},
   },
-});
+  plugins: [],
+};
+
+export default config;
