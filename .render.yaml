@@ -1,6 +1,7 @@
 services:
   - type: web
     name: recordbook-frontend
+    rootDir: src
     runtime: static
     buildCommand: npm run build
     staticPublishPath: dist
