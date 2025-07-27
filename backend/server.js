@@ -9,7 +9,7 @@ import recordRoutes from './routes/digitalRecordRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import customerRoutes from './routes/customerRoutes.js';
 import businessRoutes from './routes/businessReportRoutes.js';
-import notificationRoutes from './routes/notificationRoutes.js'; // ✅ Add this
+import notificationRoutes from './routes/notificationRoutes.js';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -17,8 +17,18 @@ import { fileURLToPath } from 'url';
 dotenv.config();
 const app = express();
 
-// ✅ CORS for local dev or update origin for Render live frontend
-app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
+// ✅ Allow CORS from frontend domain or all origins for dev
+const allowedOrigins = [
+  'http://localhost:5173',         // for local dev
+  'https://your-frontend.onrender.com' // 🔁 Replace with your frontend live URL
+];
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
 // ✅ API Routes
@@ -28,17 +38,19 @@ app.use('/api/records', recordRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/business', businessRoutes);
-app.use('/api/notifications', notificationRoutes); // ✅ Register route here
+app.use('/api/notifications', notificationRoutes);
 
-// ✅ STATIC + SPA fallback (for Vite/React build)
+// ✅ SPA static + fallback (for production Vite React build)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-app.use(express.static(path.join(__dirname, '../dist')));
+const frontendPath = path.join(__dirname, '../dist');
+
+app.use(express.static(frontendPath));
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../dist/index.html'));
+  res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
-// ✅ DB + Server Start
+// ✅ DB + Start Server
 const PORT = process.env.PORT || 8000;
 connectDB().then(() => {
   app.listen(PORT, () => {
