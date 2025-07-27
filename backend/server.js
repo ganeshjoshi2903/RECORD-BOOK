@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 
 import authRoutes from './routes/authRoutes.js';
 import profileRoutes from './routes/profileroutes.js';
-import recordRoutes from './routes/digitalRecordRoutes.js'; // ✅ Fixed this
+import recordRoutes from './routes/digitalRecordRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import customerRoutes from './routes/customerRoutes.js';
 import businessRoutes from './routes/businessReportRoutes.js';
@@ -23,10 +23,15 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// ✅ Root Route for Render Testing
+app.get('/', (req, res) => {
+  res.send('✅ RecordBook Backend is Live!');
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
-app.use('/api/records', recordRoutes); // ✅ now correct
+app.use('/api/records', recordRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/business', businessRoutes);
@@ -40,7 +45,7 @@ mongoose.connect(process.env.MONGO_URI, {
 .then(() => {
   console.log('✅ MongoDB connected successfully');
   app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`🚀 Server running on port ${PORT}`);
   });
 })
 .catch(err => {
