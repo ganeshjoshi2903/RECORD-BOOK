@@ -19,12 +19,20 @@ const Dashboard: React.FC = () => {
   const fetchDashboardData = async () => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("No token found in localStorage");
+        return;
+      }
 
-      const res = await fetch("http://localhost:8000/api/dashboard", {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/dashboard`, {
         headers: {
-          Authorization: `Bearer ${token}`, // ✅ Fixed this line
+          Authorization: `Bearer ${token}`,
         },
       });
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch dashboard data");
+      }
 
       const data = await res.json();
 

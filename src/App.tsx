@@ -1,3 +1,4 @@
+// App.tsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
@@ -48,7 +49,7 @@ function App() {
             <Route path="reports" element={<BusinessReports />} />
             <Route path="security" element={<SecureSafe />} />
             <Route path="notifications" element={<Notifications />} />
-            
+
             {/* Profile Routes */}
             <Route path="profile" element={<Profile />} />
             <Route path="profile/edit" element={<EditProfile />} />
