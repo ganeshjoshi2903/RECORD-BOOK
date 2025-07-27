@@ -1,59 +1,44 @@
 import express from 'express';
 import cors from 'cors';
+import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import connectDB from './config/db.js';
-
 import authRoutes from './routes/authRoutes.js';
-import profileRoutes from './routes/profileroutes.js';
-import recordRoutes from './routes/digitalRecordRoutes.js';
-import dashboardRoutes from './routes/dashboardRoutes.js';
-import customerRoutes from './routes/customerRoutes.js';
-import businessRoutes from './routes/businessReportRoutes.js';
-import notificationRoutes from './routes/notificationRoutes.js';
-
-import path from 'path';
-import { fileURLToPath } from 'url';
+import recordRoutes from './routes/recordRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js'; // ✅ Added
 
 dotenv.config();
+
 const app = express();
+const PORT = process.env.PORT || 8000;
 
-// ✅ Allow CORS from frontend domain or all origins for dev
-const allowedOrigins = [
-  'http://localhost:5173',         // for local dev
-  'https://your-frontend.onrender.com' // 🔁 Replace with your frontend live URL
-];
-app.use(
-  cors({
-    origin: allowedOrigins,
-    credentials: true,
-  })
-);
-
+// Middleware
+app.use(cors());
 app.use(express.json());
 
-// ✅ API Routes
+// Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/profile', profileRoutes);
 app.use('/api/records', recordRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/customers', customerRoutes);
-app.use('/api/business', businessRoutes);
-app.use('/api/notifications', notificationRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/notifications', notificationRoutes); // ✅ Fixed route path
 
-// ✅ SPA static + fallback (for production Vite React build)
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const frontendPath = path.join(__dirname, '../dist');
-
-app.use(express.static(frontendPath));
-app.get('*', (req, res) => {
-  res.sendFile(path.join(frontendPath, 'index.html'));
+// Default Route
+app.get('/', (req, res) => {
+  res.send('KWMS Record Book API is Running 🚀');
 });
 
-// ✅ DB + Start Server
-const PORT = process.env.PORT || 8000;
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`✅ Server running on http://localhost:${PORT}`);
+// DB Connection
+mongoose
+  .connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  })
+  .then(() => {
+    console.log('✅ MongoDB Connected');
+    app.listen(PORT, () => {
+      console.log(`✅ Server running on port ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error('❌ MongoDB connection error:', error);
   });
-});
