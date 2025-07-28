@@ -1,8 +1,11 @@
+// server.js
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser'; // ✅ for login/session if you use cookies
 
+// Import route files
 import authRoutes from './routes/authRoutes.js';
 import profileRoutes from './routes/profileroutes.js';
 import recordRoutes from './routes/digitalRecordRoutes.js';
@@ -11,24 +14,30 @@ import customerRoutes from './routes/customerRoutes.js';
 import businessRoutes from './routes/businessReportRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 
+// Load environment variables
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-// Middleware
+// ✅ Middleware
 app.use(cors({
-  origin: '*',
+  origin: 'https://recordbook-frontend.onrender.com', // ✅ Replace with your real frontend domain
   credentials: true,
 }));
 app.use(express.json());
+app.use(cookieParser()); // ✅ Needed for JWT cookie auth
 
-// ✅ Root Route for Render Testing
+// ✅ Health Check Routes
 app.get('/', (req, res) => {
   res.send('✅ RecordBook Backend is Live!');
 });
 
-// Routes
+app.get('/api/test', (req, res) => {
+  res.json({ success: true, message: '✅ Backend test route working' });
+});
+
+// ✅ Mount API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/records', recordRoutes);
@@ -37,7 +46,7 @@ app.use('/api/customers', customerRoutes);
 app.use('/api/business', businessRoutes);
 app.use('/api/notifications', notificationRoutes);
 
-// DB Connection
+// ✅ MongoDB Connection & Server Start
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
