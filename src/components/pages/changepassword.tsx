@@ -12,7 +12,10 @@ const ChangePassword = () => {
   });
 
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
+
+  const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -20,29 +23,35 @@ const ChangePassword = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setMessage("");
 
     if (form.newPassword !== form.confirmPassword) {
-      setMessage("New password and confirm password do not match.");
+      setError("New password and confirm password do not match.");
       return;
     }
 
     try {
       const token = localStorage.getItem("token");
+
       const res = await axios.put(
-        "http://localhost:8000/api/profile/password",
+        `${BASE_URL}/api/profile/password`,
         {
           currentPassword: form.currentPassword,
           newPassword: form.newPassword,
         },
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          withCredentials: true, // Include if you're using cookies
         }
       );
 
-      setMessage(res.data.message || "Password changed successfully");
+      setMessage(res.data.message || "Password changed successfully!");
       setTimeout(() => navigate("/dashboard/profile"), 1500);
     } catch (err: any) {
-      setMessage(err.response?.data?.message || "Error changing password");
+      setError(err.response?.data?.message || "Error changing password.");
     }
   };
 
@@ -50,10 +59,13 @@ const ChangePassword = () => {
     <div className="max-w-md mx-auto mt-10 bg-white p-6 rounded shadow">
       <h2 className="text-xl font-semibold mb-4">Change Password</h2>
 
-      {message && <p className="text-red-600 mb-4">{message}</p>}
+      {error && <p className="text-red-600 mb-4">{error}</p>}
+      {message && <p className="text-green-600 mb-4">{message}</p>}
 
       <form onSubmit={handleSubmit}>
-        <label className="block mb-2 text-sm font-medium">Current Password</label>
+        <label className="block mb-2 text-sm font-medium">
+          Current Password
+        </label>
         <input
           type="password"
           name="currentPassword"
@@ -73,7 +85,9 @@ const ChangePassword = () => {
           required
         />
 
-        <label className="block mb-2 text-sm font-medium">Confirm Password</label>
+        <label className="block mb-2 text-sm font-medium">
+          Confirm Password
+        </label>
         <input
           type="password"
           name="confirmPassword"

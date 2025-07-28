@@ -21,23 +21,28 @@ const BusinessReports = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch data from backend
-  useEffect(() => {
-    axios
-      .get("http://localhost:8000/api/reports") // change port if needed
-      .then((res) => {
-        setData(res.data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching reports", err);
-        setLoading(false);
-      });
-  }, []);
+  // 🔗 Use environment variable for API base URL
+  const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
-  const filtered = monthFilter === "All"
-    ? data
-    : data.filter((r) => r.month === monthFilter);
+  // 📡 Fetch reports from backend
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await axios.get(`${BASE_URL}/api/reports`, {
+          withCredentials: true,
+        });
+        setData(res.data);
+      } catch (err) {
+        console.error("Error fetching reports", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [BASE_URL]);
+
+  const filtered =
+    monthFilter === "All" ? data : data.filter((r) => r.month === monthFilter);
 
   const exportPDF = () => {
     const doc = new jsPDF();
@@ -68,6 +73,7 @@ const BusinessReports = () => {
             <option value="All">All Months</option>
             <option value="July">July</option>
             <option value="June">June</option>
+            {/* 🔁 Add more months as needed */}
           </select>
           <button
             onClick={exportPDF}

@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { UserPlus, Users2 } from "lucide-react";
-import { FaDownload, FaBell } from "react-icons/fa";
+import { FaDownload } from "react-icons/fa";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import axios from "axios";
+
+const BACKEND_URL = import.meta.env.VITE_REACT_APP_API_URL;
 
 type HistoryItem = {
   type: "Credit" | "Debit";
@@ -20,9 +22,6 @@ type Customer = {
   history: HistoryItem[];
 };
 
-// ✅ Your backend base URL here
-const BACKEND_URL = "http://localhost:8000";
-
 const CustomerManagement: React.FC = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [newCustomer, setNewCustomer] = useState({
@@ -34,7 +33,6 @@ const CustomerManagement: React.FC = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch customers from API
   const fetchCustomers = async () => {
     setLoading(true);
     try {
@@ -52,7 +50,6 @@ const CustomerManagement: React.FC = () => {
     fetchCustomers();
   }, []);
 
-  // ✅ Add a new customer
   const handleAddCustomer = async () => {
     if (newCustomer.name && newCustomer.phone) {
       const payload = {
@@ -68,14 +65,13 @@ const CustomerManagement: React.FC = () => {
       try {
         await axios.post(`${BACKEND_URL}/api/customers`, payload);
         setNewCustomer({ name: "", phone: "", photo: "", balance: "" });
-        fetchCustomers(); // refresh list
+        fetchCustomers();
       } catch (err) {
         console.error("Error adding customer:", err);
       }
     }
   };
 
-  // ✅ Export individual statement to PDF
   const exportStatement = (cust: Customer) => {
     const doc = new jsPDF();
     doc.text(`${cust.name} - Statement`, 10, 10);
@@ -96,7 +92,6 @@ const CustomerManagement: React.FC = () => {
         <Users2 className="w-6 h-6" /> Customer Management
       </h2>
 
-      {/* ✅ Add Customer Form */}
       <div className="bg-white p-4 rounded shadow space-y-4">
         <h3 className="text-lg font-semibold flex gap-2 items-center">
           <UserPlus className="w-5 h-5" /> Add New Customer
@@ -112,7 +107,7 @@ const CustomerManagement: React.FC = () => {
             }
           />
           <input
-            type="tel"
+            type="text"
             placeholder="Phone Number"
             className="border px-3 py-2 rounded"
             value={newCustomer.phone}
@@ -121,8 +116,8 @@ const CustomerManagement: React.FC = () => {
             }
           />
           <input
-            type="url"
-            placeholder="Photo URL"
+            type="text"
+            placeholder="Photo URL (optional)"
             className="border px-3 py-2 rounded"
             value={newCustomer.photo}
             onChange={(e) =>
@@ -140,61 +135,58 @@ const CustomerManagement: React.FC = () => {
           />
         </div>
         <button
-          className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded"
           onClick={handleAddCustomer}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
           Add Customer
         </button>
       </div>
 
-      {/* ✅ Search */}
-      <input
-        type="text"
-        placeholder="Search Customer"
-        className="border px-4 py-2 rounded w-full"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
+      <div className="flex justify-between items-center mt-4">
+        <input
+          type="text"
+          placeholder="Search Customer"
+          className="border px-3 py-2 rounded w-full max-w-md"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
 
-      {/* ✅ Customer List */}
-      <div className="grid gap-4">
-        {loading ? (
-          <p>Loading customers...</p>
-        ) : filtered.length > 0 ? (
-          filtered.map((cust) => (
+      {loading ? (
+        <p className="text-center text-gray-500">Loading customers...</p>
+      ) : filtered.length === 0 ? (
+        <p className="text-center text-gray-500">No customers found.</p>
+      ) : (
+        <div className="grid md:grid-cols-3 gap-4">
+          {filtered.map((cust) => (
             <div
               key={cust._id}
-              className="border rounded shadow p-4 flex justify-between items-center"
+              className="border p-4 rounded shadow hover:shadow-md transition"
             >
-              <div className="flex gap-4 items-center">
+              <div className="flex items-center gap-4">
                 <img
                   src={cust.photo}
                   alt={cust.name}
-                  className="w-10 h-10 rounded-full"
+                  className="w-12 h-12 rounded-full"
                 />
                 <div>
                   <h4 className="font-semibold">{cust.name}</h4>
-                  <p className="text-sm text-gray-600">📞 {cust.phone}</p>
-                  <p className="text-sm">💰 Balance: ₹{cust.balance}</p>
+                  <p className="text-sm text-gray-500">{cust.phone}</p>
                 </div>
               </div>
-              <div className="flex gap-2">
-                <button
-                  className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded"
-                  onClick={() => exportStatement(cust)}
-                >
-                  <FaDownload className="inline mr-1" /> PDF
-                </button>
-                <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded">
-                  <FaBell className="inline mr-1" /> Reminder
-                </button>
-              </div>
+              <p className="mt-2 font-medium">
+                Balance: ₹{cust.balance.toFixed(2)}
+              </p>
+              <button
+                onClick={() => exportStatement(cust)}
+                className="mt-2 text-blue-600 flex items-center gap-2 hover:underline"
+              >
+                <FaDownload /> Download Statement
+              </button>
             </div>
-          ))
-        ) : (
-          <p>No customers found.</p>
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

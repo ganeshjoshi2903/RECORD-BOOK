@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 const Profile = () => {
-  const [profile, setProfile] = useState(null);
+  const [profile, setProfile] = useState<any>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
 
@@ -13,11 +13,12 @@ const Profile = () => {
   });
 
   const token = localStorage.getItem("token");
+  const API_BASE = import.meta.env.VITE_REACT_APP_API_URL;
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/api/auth/profile", {
+        const res = await axios.get(`${API_BASE}/api/auth/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setProfile(res.data);
@@ -27,16 +28,16 @@ const Profile = () => {
       }
     };
 
-    fetchProfile();
-  }, [token]);
+    if (token) {
+      fetchProfile();
+    }
+  }, [token, API_BASE]);
 
   const handleEditSubmit = async () => {
     try {
-      const res = await axios.put(
-        "http://localhost:8000/api/auth/profile",
-        formData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await axios.put(`${API_BASE}/api/auth/profile`, formData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setProfile(res.data);
       setShowEditModal(false);
     } catch (err) {
@@ -46,11 +47,9 @@ const Profile = () => {
 
   const handlePasswordSubmit = async () => {
     try {
-      const res = await axios.put(
-        "http://localhost:8000/api/auth/profile/password",
-        passwordData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await axios.put(`${API_BASE}/api/auth/profile/password`, passwordData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       alert("Password updated successfully");
       setShowPasswordModal(false);
       setPasswordData({ currentPassword: "", newPassword: "" });

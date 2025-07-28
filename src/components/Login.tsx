@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -13,23 +14,18 @@ const Login = () => {
     setError('');
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
+      const res = await axios.post(
+        `${import.meta.env.VITE_REACT_APP_API_URL}/api/auth/login`,
+        { email, password },
+        { withCredentials: true }
+      );
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.message || 'Login failed');
-        return;
-      }
-
-      localStorage.setItem('token', data.token);
+      // Store token in localStorage
+      localStorage.setItem('token', res.data.token);
+      // Navigate to dashboard
       navigate('/dashboard');
-    } catch (err) {
-      setError('Something went wrong. Please try again.');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Something went wrong. Please try again.');
     }
   };
 
@@ -44,9 +40,9 @@ const Login = () => {
             <input
               type="email"
               value={email}
-              placeholder="Enter your email"
               onChange={(e) => setEmail(e.target.value)}
               className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400 focus:outline-none"
+              placeholder="Enter your email"
               required
             />
           </div>
@@ -56,9 +52,9 @@ const Login = () => {
             <input
               type="password"
               value={password}
-              placeholder="Enter your password"
               onChange={(e) => setPassword(e.target.value)}
               className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400 focus:outline-none"
+              placeholder="Enter your password"
               required
             />
           </div>

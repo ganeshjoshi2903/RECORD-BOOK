@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
+
 const EditProfile = () => {
   const [form, setForm] = useState({ name: "", email: "" });
   const [loading, setLoading] = useState(true);
@@ -14,7 +16,7 @@ const EditProfile = () => {
     const fetchUser = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:8000/api/auth/profile", {
+        const res = await axios.get(`${BASE_URL}/api/auth/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -43,7 +45,7 @@ const EditProfile = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.put(
-        "http://localhost:8000/api/profile/update",
+        `${BASE_URL}/api/profile/update`,
         form,
         {
           headers: { Authorization: `Bearer ${token}` },
