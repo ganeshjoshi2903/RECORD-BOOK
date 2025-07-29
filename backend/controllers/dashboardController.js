@@ -26,3 +26,33 @@ export const getDashboardData = async (req, res) => {
     res.status(500).json({ message: "Failed to load dashboard data" });
   }
 };
+
+// 👇 NEW: For Income Table
+export const getIncomeRecords = async (req, res) => {
+  try {
+    const incomeRecords = await DigitalRecord.find({ type: "Income" }).sort({ date: -1 });
+    res.status(200).json(incomeRecords);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch income records" });
+  }
+};
+
+// 👇 NEW: For Expense Table
+export const getExpenseRecords = async (req, res) => {
+  try {
+    const expenseRecords = await DigitalRecord.find({ type: "Expense" }).sort({ date: -1 });
+    res.status(200).json(expenseRecords);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch expense records" });
+  }
+};
+
+// 👇 NEW: For Due Table
+export const getDueRecords = async (req, res) => {
+  try {
+    const dueRecords = await DigitalRecord.find({ type: "Due" }).sort({ date: -1 });
+    res.status(200).json(dueRecords);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch due records" });
+  }
+};
