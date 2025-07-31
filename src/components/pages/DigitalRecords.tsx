@@ -1,4 +1,3 @@
-// ✅ DigitalRecords.tsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import jsPDF from "jspdf";
@@ -44,7 +43,7 @@ const DigitalRecords = () => {
   const handleAddRecord = async () => {
     try {
       const response = await axios.post("http://localhost:8000/api/records", formData);
-      setRecords([...records, response.data]);
+      setRecords((prev) => [...prev, response.data]);
       setFormData({ type: "Income", category: "", amount: 0, customer: "", date: "" });
       setError("");
     } catch (err) {
@@ -53,23 +52,54 @@ const DigitalRecords = () => {
     }
   };
 
+  const handleDelete = async (id?: string) => {
+    if (!id) return;
+    const confirmed = window.confirm("Are you sure you want to delete this record?");
+    if (!confirmed) return;
+
+    try {
+      await axios.delete(`http://localhost:8000/api/records/${id}`);
+      setRecords((prev) => prev.filter((rec) => rec._id !== id));
+      setError("");
+    } catch (err) {
+      console.error("Delete Error", err);
+      setError("Failed to delete record");
+    }
+  };
+
   const exportPDF = () => {
+    if (!records.length) {
+      alert("No records to export");
+      return;
+    }
+
     const doc = new jsPDF();
-    const tableColumn = ["Type", "Category", "Amount", "Customer", "Date"];
+    doc.setFontSize(18);
+    doc.text("Digital Records Report", 14, 16);
+    doc.setFontSize(12);
+
+    const tableColumn = ["Type", "Category", "Amount (₹)", "Customer", "Date"];
     const tableRows = records.map((record) => [
       record.type,
-      record.category,
-      record.amount,
-      record.customer,
-      record.date,
+      record.category || "N/A",
+      record.amount.toFixed(2),
+      record.customer || "N/A",
+      new Date(record.date).toLocaleDateString(),
     ]);
-    doc.autoTable({ head: [tableColumn], body: tableRows });
+
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 22,
+    });
+
     doc.save("digital-records.pdf");
   };
 
   return (
     <div className="p-6">
       <h2 className="text-2xl font-bold mb-4">Digital Records</h2>
+
       <div className="flex gap-2 mb-4 flex-wrap">
         <select name="type" value={formData.type} onChange={handleChange} className="border px-2 py-1">
           <option value="Income">Income</option>
@@ -95,7 +125,7 @@ const DigitalRecords = () => {
         <input
           type="text"
           name="customer"
-          placeholder="Customer Name"
+          placeholder="Customer"
           value={formData.customer}
           onChange={handleChange}
           className="border px-2 py-1"
@@ -108,7 +138,9 @@ const DigitalRecords = () => {
           className="border px-2 py-1"
         />
       </div>
+
       {error && <p className="text-red-500 mb-2">{error}</p>}
+
       <div className="flex gap-4 mb-4">
         <button onClick={handleAddRecord} className="bg-blue-600 text-white px-4 py-2 rounded">
           Add Record
@@ -117,28 +149,49 @@ const DigitalRecords = () => {
           Export PDF
         </button>
       </div>
-      <table className="min-w-full border">
-        <thead>
-          <tr className="bg-gray-200">
-            <th className="border px-4 py-2">Type</th>
-            <th className="border px-4 py-2">Category</th>
-            <th className="border px-4 py-2">Amount</th>
-            <th className="border px-4 py-2">Customer</th>
-            <th className="border px-4 py-2">Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          {records.map((record, idx) => (
-            <tr key={record._id || idx}>
-              <td className="border px-4 py-2">{record.type}</td>
-              <td className="border px-4 py-2">{record.category}</td>
-              <td className="border px-4 py-2">{record.amount}</td>
-              <td className="border px-4 py-2">{record.customer}</td>
-              <td className="border px-4 py-2">{record.date}</td>
+
+      <div className="overflow-x-auto">
+        <table className="min-w-full border">
+          <thead>
+            <tr className="bg-gray-200">
+              <th className="border px-4 py-2">Type</th>
+              <th className="border px-4 py-2">Category</th>
+              <th className="border px-4 py-2">Amount</th>
+              <th className="border px-4 py-2">Customer</th>
+              <th className="border px-4 py-2">Date</th>
+              <th className="border px-4 py-2">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {records.map((record) => (
+              <tr key={record._id}>
+                <td className="border px-4 py-2">{record.type}</td>
+                <td className="border px-4 py-2">{record.category || "—"}</td>
+                <td className="border px-4 py-2">₹{record.amount}</td>
+                <td className="border px-4 py-2">{record.customer || "—"}</td>
+                <td className="border px-4 py-2">
+                  {new Date(record.date).toLocaleDateString()}
+                </td>
+                <td className="border px-4 py-2">
+                  <button
+                    onClick={() => handleDelete(record._id)}
+                    className="text-red-600 hover:underline"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {records.length === 0 && (
+              <tr>
+                <td colSpan={6} className="text-center text-gray-500 py-4">
+                  No records found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

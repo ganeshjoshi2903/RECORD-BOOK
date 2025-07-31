@@ -1,4 +1,4 @@
-import DigitalRecord from '../models/DigitalRecord.js';
+import DigitalRecord from '../models/digitalRecord.js';
 import Customer from '../models/Customer.js';
 
 export const getDashboardStats = async (req, res) => {

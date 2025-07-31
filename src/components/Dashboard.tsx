@@ -1,5 +1,3 @@
-// ✅ Complete and Corrected Code for your Dashboard Frontend (Dashboard.tsx)
-
 import React, { useEffect, useState } from "react";
 import {
   ArrowDownCircle,
@@ -151,23 +149,24 @@ const Dashboard: React.FC = () => {
         <h2 className="text-lg font-semibold text-gray-800 mb-4">
           Overview Chart
         </h2>
-        <div className="w-full h-[220px]">
+        <div className="w-full h-[300px] md:h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={chartData}
-              margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+              barSize={80}
+              margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip formatter={(value: number) => `₹${value}`} />
-              <Bar dataKey="value" fill="#60a5fa" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="value" fill="#60a5fa" radius={[10, 10, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Tables Section */}
+      {/* Tables */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {[
           {
@@ -220,7 +219,7 @@ const Dashboard: React.FC = () => {
                   {section.data.slice(0, 4).map((item: any, i: number) => (
                     <tr
                       key={i}
-                      className={`$ {
+                      className={`${
                         i % 2 === 0 ? "bg-white" : section.rowAlt
                       } hover:bg-gray-50 transition-all`}
                     >

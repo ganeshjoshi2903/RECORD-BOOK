@@ -6,13 +6,21 @@ const digitalRecordSchema = new mongoose.Schema({
     enum: ['Income', 'Expense', 'Due'],
     required: true,
   },
-  category: String,
-  amount: Number,
+  amount: {
+    type: Number,
+    required: true,
+  },
   customer: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Customer',
   },
-  date: String,
+  date: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
-export default mongoose.model('DigitalRecord', digitalRecordSchema);
+// ✅ Prevent OverwriteModelError:
+const DigitalRecord = mongoose.models.DigitalRecord || mongoose.model('DigitalRecord', digitalRecordSchema);
+
+export default DigitalRecord;
