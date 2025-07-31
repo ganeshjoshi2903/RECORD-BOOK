@@ -3,21 +3,22 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   BookOpen,
   Users,
-  TrendingUp,
+  TrendingDown,
   Shield,
   Bell,
   User,
   LogOut,
+  LayoutDashboard,
 } from 'lucide-react';
 
 const DashboardLayout = () => {
   const navigate = useNavigate();
 
   const links = [
+    { name: 'Dashboard', path: '', icon: LayoutDashboard }, // ✅ NEW: Dashboard main link
     { name: 'Digital Records', path: 'records', icon: BookOpen },
     { name: 'Customer Management', path: 'customers', icon: Users },
-    { name: 'Business Reports', path: 'reports', icon: TrendingUp },
-    { name: 'Secure & Safe', path: 'security', icon: Shield },
+    { name: 'Due Tracker', path: 'dues', icon: TrendingDown },
     { name: 'Notifications', path: 'notifications', icon: Bell },
     { name: 'Profile', path: 'profile', icon: User },
   ];
@@ -28,70 +29,80 @@ const DashboardLayout = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gradient-to-br from-blue-50 to-gray-50 font-sans antialiased">
       {/* Sidebar */}
-      <aside className="w-64 bg-blue-50 shadow-md border-r border-blue-100">
-        <div className="p-6 text-xl font-bold text-blue-700">Record Book</div>
-        <nav className="space-y-1 px-4">
+      <aside className="w-64 bg-white shadow-xl border-r border-blue-100 py-6 flex flex-col z-20">
+        <div className="px-6 pb-8 text-3xl font-extrabold text-blue-700 tracking-tight">
+          Record Book
+        </div>
+        <nav className="space-y-2 px-4 flex-grow">
           {links.map((link) => (
             <NavLink
-              key={link.path}
+              key={link.path || 'dashboard-root'}
               to={`/dashboard/${link.path}`}
+              end={link.path === ''} // only match exact /dashboard for main
               className={({ isActive }) =>
-                `flex items-center space-x-3 p-3 rounded-md text-sm font-medium transition-all duration-150 ${
+                `flex items-center space-x-4 p-3.5 rounded-xl text-base transition-all duration-250 ease-in-out transform
+                ${
                   isActive
-                    ? 'bg-blue-100 text-blue-800 font-semibold'
-                    : 'text-gray-700 hover:bg-blue-100'
-                }`
+                    ? 'bg-blue-600 text-white shadow-lg scale-[1.02] font-semibold'
+                    : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700 hover:shadow-md'
+                }
+                group focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75`
               }
             >
-              <link.icon className="w-5 h-5" />
-              <span>{link.name}</span>
+              <link.icon className="w-6 h-6 text-blue-500 group-hover:text-blue-700 transition-colors duration-250" />
+              <span className="font-medium">{link.name}</span>
             </NavLink>
           ))}
         </nav>
+
+        <div className="px-6 pt-4 mt-auto border-t border-gray-100 text-gray-500 text-xs text-center">
+          <p>&copy; 2025 Record Book. All rights reserved.</p>
+          <p className="mt-1">Version 1.0.0</p>
+        </div>
       </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col relative z-10">
         {/* Topbar */}
-        <header className="flex justify-between items-center bg-white px-6 py-4 border-b shadow-sm">
-          <h1 className="text-xl font-semibold text-gray-800">Dashboard</h1>
-          <div className="flex items-center space-x-4">
-            {/* Notification Icon */}
+        <header className="flex justify-between items-center bg-white px-10 py-5 border-b border-gray-100 shadow-md">
+          <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
+          <div className="flex items-center space-x-6">
             <NavLink
               to="/dashboard/notifications"
-              className="relative text-gray-600 hover:text-gray-900"
+              className="relative text-gray-500 hover:text-blue-600 transition-colors duration-200 p-2 rounded-full hover:bg-gray-100"
+              title="Notifications"
             >
-              <Bell className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
+              <Bell className="w-6 h-6" />
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold border-2 border-white shadow-sm">
                 3
               </span>
             </NavLink>
 
-            {/* User Icon only */}
             <NavLink
               to="/dashboard/profile"
-              className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors"
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 hover:bg-blue-200 transition-colors duration-200 shadow-sm"
               title="Profile"
             >
-              <User className="w-5 h-5 text-gray-700" />
+              <User className="w-6 h-6 text-blue-700" />
             </NavLink>
 
-            {/* Logout Button */}
             <button
               onClick={handleLogout}
-              className="ml-2 flex items-center space-x-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md shadow-md transition-all duration-200"
+              className="flex items-center space-x-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-5 py-2.5 rounded-full shadow-lg transition-all duration-250 transform hover:scale-105 active:scale-95 text-base font-semibold"
             >
-              <LogOut className="w-4 h-4" />
-              <span className="text-sm font-semibold">Logout</span>
+              <LogOut className="w-5 h-5" />
+              <span>Logout</span>
             </button>
           </div>
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-8 bg-gray-50">
-          <Outlet />
+        <main className="flex-1 p-8 bg-gray-100 overflow-auto">
+          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-200 min-h-[calc(100vh-180px)]">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

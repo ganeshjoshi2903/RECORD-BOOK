@@ -1,3 +1,5 @@
+// ✅ Complete and Corrected Code for your Dashboard Frontend (Dashboard.tsx)
+
 import React, { useEffect, useState } from "react";
 import {
   ArrowDownCircle,
@@ -43,6 +45,7 @@ const Dashboard: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
+
       setTotalIncome(data.totalIncome || 0);
       setTotalExpense(data.totalExpense || 0);
       setTotalDue(data.totalDue || 0);
@@ -59,9 +62,15 @@ const Dashboard: React.FC = () => {
         }),
       ]);
 
-      setRecentIncome(await incomeRes.json());
-      setRecentExpenses(await expenseRes.json());
-      setRecentDues(await dueRes.json());
+      const [incomeData, expenseData, dueData] = await Promise.all([
+        incomeRes.json(),
+        expenseRes.json(),
+        dueRes.json(),
+      ]);
+
+      setRecentIncome(incomeData);
+      setRecentExpenses(expenseData);
+      setRecentDues(dueData);
     } catch (err) {
       console.error("Error fetching dashboard data:", err);
     } finally {
@@ -211,7 +220,7 @@ const Dashboard: React.FC = () => {
                   {section.data.slice(0, 4).map((item: any, i: number) => (
                     <tr
                       key={i}
-                      className={`${
+                      className={`$ {
                         i % 2 === 0 ? "bg-white" : section.rowAlt
                       } hover:bg-gray-50 transition-all`}
                     >

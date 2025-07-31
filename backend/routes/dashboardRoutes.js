@@ -1,16 +1,16 @@
-import express from "express";
+import express from 'express';
 import {
-  getDashboardData,
+  getDashboardStats,
   getIncomeRecords,
   getExpenseRecords,
   getDueRecords,
-} from "../controllers/dashboardController.js";
+} from '../controllers/dashboardController.js';
 
 const router = express.Router();
 
-router.get("/", getDashboardData); // graph + summary
-router.get("/income-records", getIncomeRecords); // table
-router.get("/expense-records", getExpenseRecords); // table
-router.get("/due-records", getDueRecords); // table
+router.get('/', getDashboardStats);
+router.get('/income-records', getIncomeRecords);
+router.get('/expense-records', getExpenseRecords);
+router.get('/due-records', getDueRecords);
 
 export default router;

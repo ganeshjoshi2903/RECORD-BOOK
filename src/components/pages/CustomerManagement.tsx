@@ -20,7 +20,7 @@ type Customer = {
   history: HistoryItem[];
 };
 
-// ✅ Your backend base URL here
+// ✅ Backend base URL
 const BACKEND_URL = "http://localhost:8000";
 
 const CustomerManagement: React.FC = () => {
@@ -34,12 +34,11 @@ const CustomerManagement: React.FC = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch customers from API
+  // ✅ Fetch customers
   const fetchCustomers = async () => {
     setLoading(true);
     try {
       const res = await axios.get(`${BACKEND_URL}/api/customers`);
-      console.log("Customers fetched:", res.data);
       setCustomers(res.data);
     } catch (err) {
       console.error("Error fetching customers:", err);
@@ -68,14 +67,14 @@ const CustomerManagement: React.FC = () => {
       try {
         await axios.post(`${BACKEND_URL}/api/customers`, payload);
         setNewCustomer({ name: "", phone: "", photo: "", balance: "" });
-        fetchCustomers(); // refresh list
+        fetchCustomers(); // Refresh
       } catch (err) {
         console.error("Error adding customer:", err);
       }
     }
   };
 
-  // ✅ Export individual statement to PDF
+  // ✅ Export to PDF
   const exportStatement = (cust: Customer) => {
     const doc = new jsPDF();
     doc.text(`${cust.name} - Statement`, 10, 10);
@@ -96,7 +95,7 @@ const CustomerManagement: React.FC = () => {
         <Users2 className="w-6 h-6" /> Customer Management
       </h2>
 
-      {/* ✅ Add Customer Form */}
+      {/* ✅ Add New Customer */}
       <div className="bg-white p-4 rounded shadow space-y-4">
         <h3 className="text-lg font-semibold flex gap-2 items-center">
           <UserPlus className="w-5 h-5" /> Add New Customer

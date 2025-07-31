@@ -1,6 +1,5 @@
 import Customer from '../models/Customer.js';
 
-// GET all customers
 export const getAllCustomers = async (req, res) => {
   try {
     const customers = await Customer.find();
@@ -10,19 +9,20 @@ export const getAllCustomers = async (req, res) => {
   }
 };
 
-// POST create a customer
 export const createCustomer = async (req, res) => {
   try {
-    const { name, email, phone } = req.body;
+    const { name, phone, photo, balance } = req.body;
 
     const newCustomer = new Customer({
       name,
-      email,
-      phone
+      phone,
+      photo,
+      balance,
+      history: [],
     });
 
-    const savedCustomer = await newCustomer.save();
-    res.status(201).json(savedCustomer);
+    const saved = await newCustomer.save();
+    res.status(201).json(saved);
   } catch (err) {
     res.status(500).json({ message: 'Failed to create customer' });
   }

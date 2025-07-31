@@ -1,27 +1,18 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const digitalRecordSchema = new mongoose.Schema({
   type: {
     type: String,
-    enum: ["Income", "Expense", "Due"],
+    enum: ['Income', 'Expense', 'Due'],
     required: true,
   },
-  category: {
-    type: String,
-    required: true,
-  },
-  amount: {
-    type: Number,
-    required: true,
-  },
+  category: String,
+  amount: Number,
   customer: {
-    type: String,
-    required: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Customer',
   },
-  date: {
-    type: String,
-    required: true,
-  },
+  date: String,
 });
 
-export default mongoose.model("DigitalRecord", digitalRecordSchema);
+export default mongoose.model('DigitalRecord', digitalRecordSchema);

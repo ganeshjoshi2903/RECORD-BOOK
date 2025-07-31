@@ -1,27 +1,43 @@
-import DigitalRecord from "../models/DigitalRecord.js";
-
-export const getRecords = async (req, res) => {
-  try {
-    const records = await DigitalRecord.find().sort({ date: -1 });
-    res.status(200).json(records);
-  } catch (error) {
-    console.error('Fetch Error:', error);
-    res.status(500).json({ message: "Failed to fetch records" });
-  }
-};
+import DigitalRecord from '../models/DigitalRecord.js';
+import Customer from '../models/Customer.js';
 
 export const createRecord = async (req, res) => {
   try {
     const { type, category, amount, customer, date } = req.body;
-    if (!type || !category || !amount || !customer || !date) {
-      return res.status(400).json({ message: "Missing required fields" });
+
+    // Fetch or create customer by name (not by ID)
+    let customerDoc = await Customer.findOne({ name: customer });
+
+    if (!customerDoc) {
+      customerDoc = new Customer({ name: customer, balance: 0 });
+      await customerDoc.save();
     }
 
-    const newRecord = new DigitalRecord({ type, category, amount, customer, date });
-    const savedRecord = await newRecord.save();
-    res.status(201).json(savedRecord);
-  } catch (error) {
-    console.error('Create Error:', error);
-    res.status(500).json({ message: "Failed to create record" });
+    const newRecord = new DigitalRecord({
+      type,
+      category,
+      amount,
+      customer: customerDoc._id,
+      date,
+    });
+
+    await newRecord.save();
+    res.status(201).json({ ...newRecord._doc, customer: customerDoc.name });
+  } catch (err) {
+    console.error('❌ Failed to create record:', err.message);
+    res.status(500).json({ message: 'Failed to create record' });
+  }
+};
+
+export const getRecords = async (req, res) => {
+  try {
+    const records = await DigitalRecord.find().populate('customer', 'name');
+    const enriched = records.map(r => ({
+      ...r._doc,
+      customer: r.customer?.name || 'Unknown'
+    }));
+    res.json(enriched);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch records' });
   }
 };

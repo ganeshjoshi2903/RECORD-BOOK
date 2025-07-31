@@ -1,58 +1,48 @@
-import DigitalRecord from "../models/DigitalRecord.js";
+import DigitalRecord from '../models/DigitalRecord.js';
+import Customer from '../models/Customer.js';
 
-export const getDashboardData = async (req, res) => {
+export const getDashboardStats = async (req, res) => {
   try {
-    const records = await DigitalRecord.find().sort({ date: -1 });
+    const income = await DigitalRecord.find({ type: 'Income' });
+    const expense = await DigitalRecord.find({ type: 'Expense' });
+    const due = await DigitalRecord.find({ type: 'Due' });
 
-    let totalIncome = 0;
-    let totalExpense = 0;
-    let totalDue = 0;
-
-    records.forEach((rec) => {
-      const amt = Number(rec.amount);
-      if (rec.type === "Income") totalIncome += amt;
-      else if (rec.type === "Expense") totalExpense += amt;
-      else if (rec.type === "Due") totalDue += amt;
+    res.json({
+      totalIncome: income.reduce((acc, curr) => acc + curr.amount, 0),
+      totalExpense: expense.reduce((acc, curr) => acc + curr.amount, 0),
+      totalDue: due.reduce((acc, curr) => acc + curr.amount, 0),
     });
-
-    res.status(200).json({
-      totalIncome,
-      totalExpense,
-      totalDue,
-      records,
-    });
-  } catch (error) {
-    console.error("Dashboard error:", error);
-    res.status(500).json({ message: "Failed to load dashboard data" });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
-// 👇 NEW: For Income Table
 export const getIncomeRecords = async (req, res) => {
-  try {
-    const incomeRecords = await DigitalRecord.find({ type: "Income" }).sort({ date: -1 });
-    res.status(200).json(incomeRecords);
-  } catch (error) {
-    res.status(500).json({ message: "Failed to fetch income records" });
-  }
+  const records = await DigitalRecord.find({ type: 'Income' });
+  res.json(records);
 };
 
-// 👇 NEW: For Expense Table
 export const getExpenseRecords = async (req, res) => {
-  try {
-    const expenseRecords = await DigitalRecord.find({ type: "Expense" }).sort({ date: -1 });
-    res.status(200).json(expenseRecords);
-  } catch (error) {
-    res.status(500).json({ message: "Failed to fetch expense records" });
-  }
+  const records = await DigitalRecord.find({ type: 'Expense' });
+  res.json(records);
 };
 
-// 👇 NEW: For Due Table
 export const getDueRecords = async (req, res) => {
   try {
-    const dueRecords = await DigitalRecord.find({ type: "Due" }).sort({ date: -1 });
-    res.status(200).json(dueRecords);
-  } catch (error) {
-    res.status(500).json({ message: "Failed to fetch due records" });
+    const dueRecords = await DigitalRecord.find({ type: 'Due' }).populate('customer', 'name');
+
+    const enriched = dueRecords.map((r) => ({
+      _id: r._id,
+      customer: {
+        name: r.customer?.name || 'N/A',
+      },
+      amount: r.amount || 0,
+      dueDate: r.date || 'N/A',
+    }));
+
+    res.json(enriched);
+  } catch (err) {
+    console.error("Error in getDueRecords:", err.message);
+    res.status(500).json({ message: 'Failed to fetch due records' });
   }
 };

@@ -1,3 +1,4 @@
+// ✅ DigitalRecords.tsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import jsPDF from "jspdf";
@@ -47,6 +48,7 @@ const DigitalRecords = () => {
       setFormData({ type: "Income", category: "", amount: 0, customer: "", date: "" });
       setError("");
     } catch (err) {
+      console.error("Add Record Error", err);
       setError("Failed to add record");
     }
   };
@@ -61,7 +63,6 @@ const DigitalRecords = () => {
       record.customer,
       record.date,
     ]);
-
     doc.autoTable({ head: [tableColumn], body: tableRows });
     doc.save("digital-records.pdf");
   };
@@ -69,21 +70,52 @@ const DigitalRecords = () => {
   return (
     <div className="p-6">
       <h2 className="text-2xl font-bold mb-4">Digital Records</h2>
-      <div className="flex gap-2 mb-4">
-        <select name="type" value={formData.type} onChange={handleChange}>
+      <div className="flex gap-2 mb-4 flex-wrap">
+        <select name="type" value={formData.type} onChange={handleChange} className="border px-2 py-1">
           <option value="Income">Income</option>
           <option value="Expense">Expense</option>
           <option value="Due">Due</option>
         </select>
-        <input type="text" name="category" placeholder="Category" value={formData.category} onChange={handleChange} />
-        <input type="number" name="amount" placeholder="Amount" value={formData.amount} onChange={handleChange} />
-        <input type="text" name="customer" placeholder="Customer" value={formData.customer} onChange={handleChange} />
-        <input type="date" name="date" value={formData.date} onChange={handleChange} />
+        <input
+          type="text"
+          name="category"
+          placeholder="Category"
+          value={formData.category}
+          onChange={handleChange}
+          className="border px-2 py-1"
+        />
+        <input
+          type="number"
+          name="amount"
+          placeholder="Amount"
+          value={formData.amount}
+          onChange={handleChange}
+          className="border px-2 py-1"
+        />
+        <input
+          type="text"
+          name="customer"
+          placeholder="Customer Name"
+          value={formData.customer}
+          onChange={handleChange}
+          className="border px-2 py-1"
+        />
+        <input
+          type="date"
+          name="date"
+          value={formData.date}
+          onChange={handleChange}
+          className="border px-2 py-1"
+        />
       </div>
       {error && <p className="text-red-500 mb-2">{error}</p>}
       <div className="flex gap-4 mb-4">
-        <button onClick={handleAddRecord} className="bg-blue-600 text-white px-4 py-2 rounded">Add Record</button>
-        <button onClick={exportPDF} className="bg-green-600 text-white px-4 py-2 rounded">Export PDF</button>
+        <button onClick={handleAddRecord} className="bg-blue-600 text-white px-4 py-2 rounded">
+          Add Record
+        </button>
+        <button onClick={exportPDF} className="bg-green-600 text-white px-4 py-2 rounded">
+          Export PDF
+        </button>
       </div>
       <table className="min-w-full border">
         <thead>
@@ -96,8 +128,8 @@ const DigitalRecords = () => {
           </tr>
         </thead>
         <tbody>
-          {records.map((record) => (
-            <tr key={record._id}>
+          {records.map((record, idx) => (
+            <tr key={record._id || idx}>
               <td className="border px-4 py-2">{record.type}</td>
               <td className="border px-4 py-2">{record.category}</td>
               <td className="border px-4 py-2">{record.amount}</td>
