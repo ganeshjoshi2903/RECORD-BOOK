@@ -1,3 +1,4 @@
+// ✅ Updated CustomerManagement.tsx (with working delete & profile photo rendering)
 import React, { useEffect, useState } from "react";
 import { UserPlus, Users2, Trash2 } from "lucide-react";
 import { FaDownload } from "react-icons/fa";
@@ -5,22 +6,17 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import axios from "axios";
 
-type HistoryItem = {
-  type: "Credit" | "Debit";
-  amount: number;
-  date: string;
-};
+const BACKEND_URL = "http://localhost:8000";
 
 type Customer = {
   _id: string;
   name: string;
   phone: string;
-  photo: string;
+  photo?: string; // 📸 photo is optional
   balance: number;
-  history: HistoryItem[];
+  createdAt?: string;
+  updatedAt?: string;
 };
-
-const BACKEND_URL = "http://localhost:8000";
 
 const CustomerManagement: React.FC = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -50,24 +46,22 @@ const CustomerManagement: React.FC = () => {
   }, []);
 
   const handleAddCustomer = async () => {
-    if (newCustomer.name && newCustomer.phone) {
-      const payload = {
-        name: newCustomer.name,
-        phone: newCustomer.phone,
-        photo:
-          newCustomer.photo ||
-          `https://i.pravatar.cc/40?img=${Math.floor(Math.random() * 70) + 1}`,
-        balance: parseFloat(newCustomer.balance) || 0,
-        history: [],
-      };
+    if (!newCustomer.name || !newCustomer.phone) return;
 
-      try {
-        await axios.post(`${BACKEND_URL}/api/customers`, payload);
-        setNewCustomer({ name: "", phone: "", photo: "", balance: "" });
-        fetchCustomers();
-      } catch (err) {
-        console.error("Error adding customer:", err);
-      }
+    const payload = {
+      name: newCustomer.name,
+      phone: newCustomer.phone,
+      photo: newCustomer.photo,
+      balance: parseFloat(newCustomer.balance) || 0,
+    };
+
+    try {
+      await axios.post(`${BACKEND_URL}/api/customers`, payload);
+      setNewCustomer({ name: "", phone: "", photo: "", balance: "" });
+      fetchCustomers();
+    } catch (err) {
+      console.error("Error adding customer:", err);
+      alert("Failed to add customer.");
     }
   };
 
@@ -77,9 +71,10 @@ const CustomerManagement: React.FC = () => {
 
     try {
       await axios.delete(`${BACKEND_URL}/api/customers/${id}`);
-      fetchCustomers(); // Refresh list
-    } catch (err) {
-      console.error("Error deleting customer:", err);
+      fetchCustomers();
+    } catch (err: any) {
+      console.error("Error deleting customer:", err.response?.data || err.message);
+      alert("Delete failed: " + (err.response?.data?.message || err.message));
     }
   };
 
@@ -87,8 +82,8 @@ const CustomerManagement: React.FC = () => {
     const doc = new jsPDF();
     doc.text(`${cust.name} - Statement`, 10, 10);
     autoTable(doc, {
-      head: [["Date", "Type", "Amount"]],
-      body: cust.history.map((h) => [h.date, h.type, h.amount.toString()]),
+      head: [["Name", "Phone", "Balance"]],
+      body: [[cust.name, cust.phone, `₹${cust.balance.toFixed(2)}`]],
     });
     doc.save(`${cust.name}_statement.pdf`);
   };
@@ -128,7 +123,7 @@ const CustomerManagement: React.FC = () => {
             }
           />
           <input
-            type="url"
+            type="text"
             placeholder="Photo URL"
             className="border px-3 py-2 rounded"
             value={newCustomer.photo}
@@ -174,12 +169,14 @@ const CustomerManagement: React.FC = () => {
               className="border rounded shadow p-4 flex justify-between items-center"
             >
               <div className="flex gap-4 items-center">
-                <img
-                  src={cust.photo}
-                  alt={cust.name}
-                  className="w-10 h-10 rounded-full"
-                />
-                <div>
+                {cust.photo && (
+                  <img
+                    src={cust.photo}
+                    alt={cust.name}
+                    className="w-12 h-12 rounded-full object-cover border"
+                  />
+                )}
+                <div className="flex flex-col">
                   <h4 className="font-semibold">{cust.name}</h4>
                   <p className="text-sm text-gray-600">📞 {cust.phone}</p>
                   <p className="text-sm">💰 Balance: ₹{cust.balance}</p>

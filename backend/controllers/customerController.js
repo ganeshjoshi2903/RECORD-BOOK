@@ -1,29 +1,36 @@
 import Customer from '../models/Customer.js';
 
+// GET all customers
 export const getAllCustomers = async (req, res) => {
   try {
     const customers = await Customer.find();
-    res.json(customers);
-  } catch (err) {
-    res.status(500).json({ message: 'Failed to fetch customers' });
+    res.status(200).json(customers);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching customers', error });
   }
 };
 
-export const createCustomer = async (req, res) => {
+// POST a new customer
+export const addCustomer = async (req, res) => {
   try {
-    const { name, phone, photo, balance } = req.body;
+    const newCustomer = new Customer(req.body);
+    await newCustomer.save();
+    res.status(201).json(newCustomer);
+  } catch (error) {
+    res.status(500).json({ message: 'Error adding customer', error });
+  }
+};
 
-    const newCustomer = new Customer({
-      name,
-      phone,
-      photo,
-      balance,
-      history: [],
-    });
-
-    const saved = await newCustomer.save();
-    res.status(201).json(saved);
-  } catch (err) {
-    res.status(500).json({ message: 'Failed to create customer' });
+// DELETE a customer by ID
+export const deleteCustomer = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await Customer.findByIdAndDelete(id);
+    if (!deleted) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
+    res.status(200).json({ message: 'Customer deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting customer', error });
   }
 };

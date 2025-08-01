@@ -1,24 +1,30 @@
+// src/components/Header.tsx
 import React from 'react';
-import { BookOpen, LogIn, UserPlus } from 'lucide-react';
+import { BookOpen, LogIn, UserPlus, Home } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Check if current route is inside the dashboard
   const isDashboardRoute = location.pathname.startsWith('/dashboard');
 
   if (isDashboardRoute) return null;
 
   const handleScrollLink = (sectionId: string) => {
     if (location.pathname !== '/') {
-      // Navigate to home and let useEffect there handle scrolling
       navigate(`/#${sectionId}`);
     } else {
-      // Already on home page, just scroll
       const section = document.getElementById(sectionId);
       section?.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const goToHome = () => {
+    if (location.pathname !== '/') {
+      navigate('/');
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -37,6 +43,12 @@ const Header = () => {
 
             {/* Nav Links */}
             <nav className="hidden md:flex space-x-8">
+              <button
+                onClick={goToHome}
+                className="text-gray-600 hover:text-teal-600 transition-colors duration-200 font-medium"
+              >
+                Home
+              </button>
               <button
                 onClick={() => handleScrollLink('features')}
                 className="text-gray-600 hover:text-teal-600 transition-colors duration-200 font-medium"

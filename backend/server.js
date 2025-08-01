@@ -2,51 +2,46 @@ import express from 'express';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import cors from 'cors';
-import cookieParser from 'cookie-parser'; // Optional, useful if you use cookies
+import cookieParser from 'cookie-parser';
 
-// Import routes
+// Import all route files
 import authRoutes from './routes/authRoutes.js';
 import recordRoutes from './routes/digitalRecordRoutes.js';
 import customerRoutes from './routes/customerRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
-import profileRoutes from './routes/profileRoutes.js'; // ✅ ADD THIS
+import profileRoutes from './routes/profileRoutes.js';
 
-dotenv.config();
+dotenv.config(); // Load env variables
 
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-// CORS setup
+// Middleware setup
 app.use(cors({
-  origin: function (origin, callback) {
-    const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174'];
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: ['http://localhost:5173'], // Frontend origin
+  credentials: true,                // Allow cookies
 }));
+app.use(express.json());           // Parse JSON bodies
+app.use(cookieParser());           // Parse cookies
 
-app.use(express.json());
-app.use(cookieParser()); // Optional
-
-// ✅ Mount all routes
+// Route mounting
 app.use('/api/auth', authRoutes);
 app.use('/api/records', recordRoutes);
-app.use('/api/customers', customerRoutes);
+app.use('/api/customers', customerRoutes); // 💡 This route handles customer CRUD
 app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/profile', profileRoutes); // ✅ ADD THIS
+app.use('/api/profile', profileRoutes);
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
   .then(() => {
-    console.log('MongoDB connected');
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    console.log('✅ MongoDB connected successfully');
+    app.listen(PORT, () =>
+      console.log(`🚀 Server is running at http://localhost:${PORT}`)
+    );
   })
   .catch((error) => {
-    console.error('MongoDB connection error:', error.message);
+    console.error('❌ MongoDB connection failed:', error.message);
   });
