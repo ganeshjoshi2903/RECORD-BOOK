@@ -12,9 +12,11 @@ export const getAllCustomers = async (req, res) => {
 
 // POST a new customer
 export const addCustomer = async (req, res) => {
+  console.log("📦 Received customer data:", req.body);
   try {
     const newCustomer = new Customer(req.body);
     await newCustomer.save();
+    console.log("💾 Saved customer:", newCustomer);
     res.status(201).json(newCustomer);
   } catch (error) {
     res.status(500).json({ message: 'Error adding customer', error });

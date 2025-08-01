@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom'
 import {
   BookOpen,
   Users,
@@ -13,6 +14,7 @@ import {
 
 const DashboardLayout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const links = [
     { name: 'Dashboard', path: '', icon: LayoutDashboard }, // ✅ NEW: Dashboard main link
@@ -36,26 +38,33 @@ const DashboardLayout = () => {
           Record Book
         </div>
         <nav className="space-y-2 px-4 flex-grow">
-          {links.map((link) => (
-            <NavLink
-              key={link.path || 'dashboard-root'}
-              to={`/dashboard/${link.path}`}
-              end={link.path === ''} // only match exact /dashboard for main
-              className={({ isActive }) =>
-                `flex items-center space-x-4 p-3.5 rounded-xl text-base transition-all duration-250 ease-in-out transform
-                ${
-                  isActive
-                    ? 'bg-blue-600 text-white shadow-lg scale-[1.02] font-semibold'
-                    : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700 hover:shadow-md'
-                }
-                group focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75`
-              }
-            >
-              <link.icon className="w-6 h-6 text-blue-500 group-hover:text-blue-700 transition-colors duration-250" />
-              <span className="font-medium">{link.name}</span>
-            </NavLink>
-          ))}
-        </nav>
+  {links.map((link) => {
+    const isActive =
+      location.pathname === `/dashboard/${link.path}` ||
+      (link.path === '' && location.pathname === '/dashboard');
+
+    return (
+      <Link
+        key={link.path || 'dashboard-root'}
+        to={`/dashboard/${link.path}`}
+        className={`flex items-center space-x-4 p-3.5 rounded-xl text-base transition-all duration-250 ease-in-out transform
+          ${
+            isActive
+              ? 'bg-blue-600 text-white shadow-lg scale-[1.02] font-semibold'
+              : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700 hover:shadow-md'
+          }
+          group focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75`}
+      >
+        <link.icon
+          className={`w-6 h-6 ${
+            isActive ? 'text-white' : 'text-blue-500 group-hover:text-blue-700'
+          } transition-colors duration-250`}
+        />
+        <span className="font-medium">{link.name}</span>
+      </Link>
+    );
+  })}
+</nav>
 
         <div className="px-6 pt-4 mt-auto border-t border-gray-100 text-gray-500 text-xs text-center">
           <p>&copy; 2025 Record Book. All rights reserved.</p>

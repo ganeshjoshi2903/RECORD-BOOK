@@ -6,6 +6,10 @@ const digitalRecordSchema = new mongoose.Schema({
     enum: ['Income', 'Expense', 'Due'],
     required: true,
   },
+  category: {
+    type: String,
+    required: true,
+  },
   amount: {
     type: Number,
     required: true,

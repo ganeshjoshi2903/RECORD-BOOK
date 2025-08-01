@@ -48,12 +48,20 @@ const CustomerManagement: React.FC = () => {
   const handleAddCustomer = async () => {
     if (!newCustomer.name || !newCustomer.phone) return;
 
-    const payload = {
-      name: newCustomer.name,
-      phone: newCustomer.phone,
-      photo: newCustomer.photo,
-      balance: parseFloat(newCustomer.balance) || 0,
-    };
+    const parsedBalance = newCustomer.balance.trim() === "" ? 0 : parseFloat(newCustomer.balance);
+
+if (isNaN(parsedBalance) || parsedBalance < 0) {
+  alert("Please enter a valid non-negative balance.");
+  return;
+}
+
+const payload = {
+  name: newCustomer.name,
+  phone: newCustomer.phone,
+  photo: newCustomer.photo,
+  balance: parsedBalance,
+};
+
 
     try {
       await axios.post(`${BACKEND_URL}/api/customers`, payload);
@@ -79,14 +87,19 @@ const CustomerManagement: React.FC = () => {
   };
 
   const exportStatement = (cust: Customer) => {
-    const doc = new jsPDF();
-    doc.text(`${cust.name} - Statement`, 10, 10);
-    autoTable(doc, {
-      head: [["Name", "Phone", "Balance"]],
-      body: [[cust.name, cust.phone, `₹${cust.balance.toFixed(2)}`]],
-    });
-    doc.save(`${cust.name}_statement.pdf`);
-  };
+  const doc = new jsPDF();
+  doc.text(`${cust.name} - Statement`, 10, 10);
+
+  const balance = typeof cust.balance === 'number' ? cust.balance : 0;
+
+  autoTable(doc, {
+    head: [["Name", "Phone", "Balance"]],
+    body: [[cust.name, cust.phone, `₹${balance.toFixed(2)}`]],
+  });
+
+  doc.save(`${cust.name}_statement.pdf`);
+};
+
 
   const filtered = customers.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase())
