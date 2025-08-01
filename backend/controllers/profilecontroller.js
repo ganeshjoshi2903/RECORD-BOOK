@@ -1,45 +1,54 @@
-import bcrypt from 'bcrypt';
 import User from '../models/User.js';
 
+// Get logged-in user profile
 export const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
-    if (!user) return res.status(404).json({ message: "User not found" });
+    const user = req.user;
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
 
     res.status(200).json(user);
-  } catch (err) {
-    res.status(500).json({ message: "Server Error" });
+  } catch (error) {
+    console.error('Error fetching profile:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
+// Update profile details (name, email)
 export const updateProfile = async (req, res) => {
   try {
+    const user = req.user;
     const { name, email } = req.body;
-    const updatedUser = await User.findByIdAndUpdate(
-      req.user.id,
-      { name, email },
-      { new: true }
-    ).select("-password");
 
-    res.status(200).json(updatedUser);
-  } catch (err) {
-    res.status(500).json({ message: "Server Error" });
+    user.name = name || user.name;
+    user.email = email || user.email;
+    await user.save();
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
-export const changePassword = async (req, res) => {
+// Update password
+export const updatePassword = async (req, res) => {
   try {
+    const user = req.user;
     const { currentPassword, newPassword } = req.body;
-    const user = await User.findById(req.user.id);
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
-    if (!isMatch)
-      return res.status(400).json({ message: "Incorrect current password" });
 
-    user.password = await bcrypt.hash(newPassword, 10);
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Incorrect current password.' });
+    }
+
+    user.password = newPassword;
     await user.save();
 
-    res.status(200).json({ message: "Password updated successfully" });
-  } catch (err) {
-    res.status(500).json({ message: "Server Error" });
+    res.status(200).json({ message: 'Password updated successfully.' });
+  } catch (error) {
+    console.error('Error updating password:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };

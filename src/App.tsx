@@ -1,10 +1,13 @@
-// ✅ App.tsx (updated with correct route path and component)
+// src/App.tsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import Header from './components/Header';
 import Hero from './components/Hero';
 import Features from './components/Features';
+import AboutUs from './components/AboutUs';
+import ScrollToHash from './components/scroll';
+
 import Login from './components/Login';
 import SignUp from './components/Signup';
 
@@ -13,7 +16,7 @@ import Dashboard from './components/Dashboard';
 
 import DigitalRecords from './components/pages/DigitalRecords';
 import CustomerManagement from './components/pages/CustomerManagement';
-import DueTracker from './components/pages/DueTracker'; // ✅ Correct path
+import DueTracker from './components/pages/DueTracker';
 import Profile from './components/pages/Profile';
 import Notifications from './components/pages/Notifications';
 import EditProfile from './components/pages/EditProfile';
@@ -23,6 +26,8 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen">
+        <ScrollToHash /> {/* ✅ This handles scrolling after route change */}
+
         <Routes>
           <Route
             path="/"
@@ -31,10 +36,12 @@ function App() {
                 <Header />
                 <Hero />
                 <Features />
+                <AboutUs /> {/* ✅ ABOUT US is now part of homepage */}
               </>
             }
           />
 
+          {/* Removed /about route - no longer needed */}
           <Route path="/login" element={<><Header /><Login /></>} />
           <Route path="/signup" element={<><Header /><SignUp /></>} />
 
@@ -42,7 +49,7 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="records" element={<DigitalRecords />} />
             <Route path="customers" element={<CustomerManagement />} />
-            <Route path="dues" element={<DueTracker />} /> {/* ✅ Fixed path */}
+            <Route path="dues" element={<DueTracker />} />
             <Route path="notifications" element={<Notifications />} />
             <Route path="profile" element={<Profile />} />
             <Route path="profile/edit" element={<EditProfile />} />

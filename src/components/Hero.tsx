@@ -1,12 +1,12 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom'; // ✅ import this
+import { useNavigate } from 'react-router-dom';
 
 const Hero = () => {
-  const navigate = useNavigate(); // ✅ initialize
+  const navigate = useNavigate();
 
   const handleGetStarted = () => {
-    navigate('/login'); // ✅ go to login page
+    navigate('/login');
   };
 
   return (
@@ -65,9 +65,9 @@ const Hero = () => {
               gradient="from-blue-500 to-blue-600"
             />
             <FeatureCard
-              icon="📈"
-              title="Business Reports"
-              description="Get insights with detailed analytics."
+              icon="⏰"
+              title="Due Tracker"
+              description="Never miss payments with smart due reminders."
               gradient="from-indigo-500 to-indigo-600"
             />
             <FeatureCard

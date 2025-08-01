@@ -2,14 +2,15 @@ import express from 'express';
 import {
   getProfile,
   updateProfile,
-  changePassword,
-} from '../controllers/profilecontroller.js';
+  updatePassword, // ✅ Corrected function name
+} from '../controllers/profileController.js';
 import authMiddleware from '../middleware/authenticate.js';
 
 const router = express.Router();
 
+// ✅ Routes using correct controller methods
 router.get('/', authMiddleware, getProfile);
-router.put('/', authMiddleware, updateProfile);         // Edit Profile
-router.put('/password', authMiddleware, changePassword); // Change Password
+router.put('/', authMiddleware, updateProfile);
+router.put('/password', authMiddleware, updatePassword); // ✅ Corrected here
 
 export default router;

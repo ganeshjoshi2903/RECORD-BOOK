@@ -1,15 +1,26 @@
 import React from 'react';
 import { BookOpen, LogIn, UserPlus } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Check if current route is inside the dashboard
   const isDashboardRoute = location.pathname.startsWith('/dashboard');
 
-  // If in dashboard, don’t render header
   if (isDashboardRoute) return null;
+
+  const handleScrollLink = (sectionId: string) => {
+    if (location.pathname !== '/') {
+      // Navigate to home and let useEffect there handle scrolling
+      navigate(`/#${sectionId}`);
+    } else {
+      // Already on home page, just scroll
+      const section = document.getElementById(sectionId);
+      section?.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
     <header className="bg-white/90 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-50">
@@ -24,20 +35,20 @@ const Header = () => {
               <span className="text-xl font-bold text-gray-900">Record Book</span>
             </div>
 
-            {/* Only show Features/About on non-dashboard routes */}
+            {/* Nav Links */}
             <nav className="hidden md:flex space-x-8">
-              <a
-                href="#features"
+              <button
+                onClick={() => handleScrollLink('features')}
                 className="text-gray-600 hover:text-teal-600 transition-colors duration-200 font-medium"
               >
                 Features
-              </a>
-              <a
-                href="#about"
+              </button>
+              <button
+                onClick={() => handleScrollLink('about')}
                 className="text-gray-600 hover:text-teal-600 transition-colors duration-200 font-medium"
               >
                 About
-              </a>
+              </button>
             </nav>
           </div>
 

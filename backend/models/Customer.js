@@ -1,18 +1,20 @@
 import mongoose from 'mongoose';
 
 const customerSchema = new mongoose.Schema({
-  name: String,
+  name: {
+    type: String,
+    required: true,
+  },
   phone: String,
-  photo: String,
-  balance: Number,
-  history: [
-    {
-      type: { type: String, enum: ['Credit', 'Debit'] },
-      amount: Number,
-      date: String,
-    },
-  ],
+  email: String,
+  address: String,
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
-const Customer = mongoose.model('Customer', customerSchema);
+// 👇 Fix: Don't overwrite model if already exists
+const Customer = mongoose.models.Customer || mongoose.model('Customer', customerSchema);
+
 export default Customer;

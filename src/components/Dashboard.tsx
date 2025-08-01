@@ -15,62 +15,52 @@ import {
   CartesianGrid,
 } from "recharts";
 
+// Interfaces
 interface Transaction {
   date: string;
   amount: number;
 }
 
-interface Due {
-  date: string;
-  amount: number;
+interface Due extends Transaction {
   dateDue?: string;
 }
 
 const Dashboard: React.FC = () => {
-  const [totalIncome, setTotalIncome] = useState(0);
-  const [totalExpense, setTotalExpense] = useState(0);
-  const [totalDue, setTotalDue] = useState(0);
+  const [totalIncome, setTotalIncome] = useState<number>(0);
+  const [totalExpense, setTotalExpense] = useState<number>(0);
+  const [totalDue, setTotalDue] = useState<number>(0);
   const [recentIncome, setRecentIncome] = useState<Transaction[]>([]);
   const [recentExpenses, setRecentExpenses] = useState<Transaction[]>([]);
   const [recentDues, setRecentDues] = useState<Due[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const fetchDashboardData = async () => {
     try {
       const token = localStorage.getItem("token");
+      if (!token) return;
 
-      const res = await fetch("http://localhost:8000/api/dashboard", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
+      const headers = { Authorization: `Bearer ${token}` };
 
-      setTotalIncome(data.totalIncome || 0);
-      setTotalExpense(data.totalExpense || 0);
-      setTotalDue(data.totalDue || 0);
-
-      const [incomeRes, expenseRes, dueRes] = await Promise.all([
-        fetch("http://localhost:8000/api/dashboard/income-records", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch("http://localhost:8000/api/dashboard/expense-records", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch("http://localhost:8000/api/dashboard/due-records", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+      const [dashboardRes, incomeRes, expenseRes, dueRes] = await Promise.all([
+        fetch("http://localhost:8000/api/dashboard", { headers }),
+        fetch("http://localhost:8000/api/dashboard/income-records", { headers }),
+        fetch("http://localhost:8000/api/dashboard/expense-records", { headers }),
+        fetch("http://localhost:8000/api/dashboard/due-records", { headers }),
       ]);
 
-      const [incomeData, expenseData, dueData] = await Promise.all([
-        incomeRes.json(),
-        expenseRes.json(),
-        dueRes.json(),
-      ]);
+      const dashboardData = await dashboardRes.json();
+      const incomeData = await incomeRes.json();
+      const expenseData = await expenseRes.json();
+      const dueData = await dueRes.json();
 
-      setRecentIncome(incomeData);
-      setRecentExpenses(expenseData);
-      setRecentDues(dueData);
+      setTotalIncome(dashboardData.totalIncome || 0);
+      setTotalExpense(dashboardData.totalExpense || 0);
+      setTotalDue(dashboardData.totalDue || 0);
+      setRecentIncome(incomeData || []);
+      setRecentExpenses(expenseData || []);
+      setRecentDues(dueData || []);
     } catch (err) {
-      console.error("Error fetching dashboard data:", err);
+      console.error("Error loading dashboard data:", err);
     } finally {
       setLoading(false);
     }
@@ -89,139 +79,132 @@ const Dashboard: React.FC = () => {
     { name: "Balance", value: balance },
   ];
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return isNaN(date.getTime()) ? dateString : date.toDateString();
+  const formatDate = (dateStr: string): string => {
+    const date = new Date(dateStr);
+    return isNaN(date.getTime()) ? "N/A" : date.toDateString();
   };
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-50 text-gray-700 text-lg font-medium">
-        Loading dashboard data...
+      <div className="flex justify-center items-center h-screen text-lg text-gray-600">
+        Loading dashboard...
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-100 to-white p-6 space-y-10">
+    <div className="p-6 space-y-10 bg-gradient-to-b from-gray-100 to-white min-h-screen">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
         {[
           {
-            label: "Total Income",
-            icon: <ArrowUpCircle className="w-5 h-5 text-green-600" />,
+            title: "Total Income",
             amount: totalIncome,
+            icon: <ArrowUpCircle className="text-green-600 w-5 h-5" />,
             bg: "bg-green-50 text-green-800",
           },
           {
-            label: "Total Expense",
-            icon: <ArrowDownCircle className="w-5 h-5 text-red-600" />,
+            title: "Total Expense",
             amount: totalExpense,
+            icon: <ArrowDownCircle className="text-red-600 w-5 h-5" />,
             bg: "bg-red-50 text-red-800",
           },
           {
-            label: "Total Due",
-            icon: <IndianRupee className="w-5 h-5 text-yellow-600" />,
+            title: "Total Due",
             amount: totalDue,
+            icon: <IndianRupee className="text-yellow-600 w-5 h-5" />,
             bg: "bg-yellow-50 text-yellow-800",
           },
           {
-            label: "Balance",
-            icon: <IndianRupee className="w-5 h-5 text-blue-600" />,
+            title: "Balance",
             amount: balance,
+            icon: <IndianRupee className="text-blue-600 w-5 h-5" />,
             bg: "bg-blue-50 text-blue-800",
           },
-        ].map((card, idx) => (
+        ].map((item, idx) => (
           <div
             key={idx}
-            className={`p-5 rounded-2xl shadow-sm hover:shadow-md transition ${card.bg}`}
+            className={`rounded-2xl p-5 shadow-sm hover:shadow-md transition ${item.bg}`}
           >
-            <h3 className="text-sm font-medium">{card.label}</h3>
-            <p className="text-2xl font-bold mt-2 flex items-center gap-2">
-              {card.icon} ₹{card.amount}
-            </p>
+            <h4 className="text-sm font-medium">{item.title}</h4>
+            <div className="mt-2 text-2xl font-bold flex items-center gap-2">
+              {item.icon} ₹{item.amount}
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Chart */}
-      <div className="bg-white p-6 rounded-2xl shadow-sm">
+      {/* Bar Chart */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-800 mb-4">
           Overview Chart
         </h2>
         <div className="w-full h-[300px] md:h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={chartData}
-              barSize={80}
-              margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
-            >
+            <BarChart data={chartData} barSize={60}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip formatter={(value: number) => `₹${value}`} />
-              <Bar dataKey="value" fill="#60a5fa" radius={[10, 10, 0, 0]} />
+              <Bar dataKey="value" fill="#3b82f6" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Tables */}
+      {/* Recent Activity */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {[
           {
             title: "Recent Income",
-            icon: <IndianRupee className="text-green-600" />,
+            icon: <ArrowUpCircle className="text-green-600" />,
             data: recentIncome,
-            headerBg: "bg-green-100",
-            rowAlt: "bg-green-50",
-            textColor: "text-green-900",
+            header: "bg-green-100",
+            alt: "bg-green-50",
+            color: "text-green-800",
           },
           {
             title: "Recent Expenses",
             icon: <ArrowDownCircle className="text-red-600" />,
             data: recentExpenses,
-            headerBg: "bg-red-100",
-            rowAlt: "bg-red-50",
-            textColor: "text-red-900",
+            header: "bg-red-100",
+            alt: "bg-red-50",
+            color: "text-red-800",
           },
           {
             title: "Recent Dues",
             icon: <CalendarDays className="text-yellow-600" />,
             data: recentDues.map((d) => ({
-              ...d,
               date: d.dateDue || d.date,
+              amount: d.amount,
             })),
-            headerBg: "bg-yellow-100",
-            rowAlt: "bg-yellow-50",
-            textColor: "text-yellow-900",
+            header: "bg-yellow-100",
+            alt: "bg-yellow-50",
+            color: "text-yellow-800",
           },
         ].map((section, idx) => (
-          <div
-            key={idx}
-            className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm"
-          >
+          <div key={idx} className="bg-white p-5 rounded-2xl shadow-sm">
             <div className="flex items-center gap-2 mb-3">
               {section.icon}
-              <h3 className={`text-md font-semibold ${section.textColor}`}>
+              <h3 className={`font-semibold text-md ${section.color}`}>
                 {section.title}
               </h3>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm rounded-xl overflow-hidden">
-                <thead className={`${section.headerBg} ${section.textColor}`}>
+              <table className="w-full text-sm rounded-xl">
+                <thead className={`${section.header} ${section.color}`}>
                   <tr>
                     <th className="text-left px-3 py-2">Date</th>
                     <th className="text-left px-3 py-2">Amount</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {section.data.slice(0, 4).map((item: any, i: number) => (
+                  {section.data.slice(0, 4).map((item, i) => (
                     <tr
                       key={i}
                       className={`${
-                        i % 2 === 0 ? "bg-white" : section.rowAlt
-                      } hover:bg-gray-50 transition-all`}
+                        i % 2 === 0 ? "bg-white" : section.alt
+                      } hover:bg-gray-50`}
                     >
                       <td className="px-3 py-2">{formatDate(item.date)}</td>
                       <td className="px-3 py-2 font-medium">₹{item.amount}</td>

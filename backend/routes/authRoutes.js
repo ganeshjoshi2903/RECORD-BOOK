@@ -6,6 +6,6 @@ const router = express.Router();
 
 router.post('/signup', signup);
 router.post('/login', login);
-router.get('/me', verifyToken, getUserProfile);
+router.get('/me', verifyToken, getUserProfile); // ✅ Token protected
 
 export default router;

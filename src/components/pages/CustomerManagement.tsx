@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { UserPlus, Users2 } from "lucide-react";
-import { FaDownload, FaBell } from "react-icons/fa";
+import { UserPlus, Users2, Trash2 } from "lucide-react";
+import { FaDownload } from "react-icons/fa";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import axios from "axios";
@@ -20,7 +20,6 @@ type Customer = {
   history: HistoryItem[];
 };
 
-// ✅ Backend base URL
 const BACKEND_URL = "http://localhost:8000";
 
 const CustomerManagement: React.FC = () => {
@@ -34,7 +33,6 @@ const CustomerManagement: React.FC = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch customers
   const fetchCustomers = async () => {
     setLoading(true);
     try {
@@ -51,7 +49,6 @@ const CustomerManagement: React.FC = () => {
     fetchCustomers();
   }, []);
 
-  // ✅ Add a new customer
   const handleAddCustomer = async () => {
     if (newCustomer.name && newCustomer.phone) {
       const payload = {
@@ -67,14 +64,25 @@ const CustomerManagement: React.FC = () => {
       try {
         await axios.post(`${BACKEND_URL}/api/customers`, payload);
         setNewCustomer({ name: "", phone: "", photo: "", balance: "" });
-        fetchCustomers(); // Refresh
+        fetchCustomers();
       } catch (err) {
         console.error("Error adding customer:", err);
       }
     }
   };
 
-  // ✅ Export to PDF
+  const handleDeleteCustomer = async (id: string) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this customer?");
+    if (!confirmDelete) return;
+
+    try {
+      await axios.delete(`${BACKEND_URL}/api/customers/${id}`);
+      fetchCustomers(); // Refresh list
+    } catch (err) {
+      console.error("Error deleting customer:", err);
+    }
+  };
+
   const exportStatement = (cust: Customer) => {
     const doc = new jsPDF();
     doc.text(`${cust.name} - Statement`, 10, 10);
@@ -95,7 +103,7 @@ const CustomerManagement: React.FC = () => {
         <Users2 className="w-6 h-6" /> Customer Management
       </h2>
 
-      {/* ✅ Add New Customer */}
+      {/* Add New Customer */}
       <div className="bg-white p-4 rounded shadow space-y-4">
         <h3 className="text-lg font-semibold flex gap-2 items-center">
           <UserPlus className="w-5 h-5" /> Add New Customer
@@ -146,7 +154,7 @@ const CustomerManagement: React.FC = () => {
         </button>
       </div>
 
-      {/* ✅ Search */}
+      {/* Search */}
       <input
         type="text"
         placeholder="Search Customer"
@@ -155,7 +163,7 @@ const CustomerManagement: React.FC = () => {
         onChange={(e) => setSearch(e.target.value)}
       />
 
-      {/* ✅ Customer List */}
+      {/* Customer List */}
       <div className="grid gap-4">
         {loading ? (
           <p>Loading customers...</p>
@@ -184,8 +192,11 @@ const CustomerManagement: React.FC = () => {
                 >
                   <FaDownload className="inline mr-1" /> PDF
                 </button>
-                <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded">
-                  <FaBell className="inline mr-1" /> Reminder
+                <button
+                  className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded flex items-center gap-1"
+                  onClick={() => handleDeleteCustomer(cust._id)}
+                >
+                  <Trash2 size={16} /> Delete
                 </button>
               </div>
             </div>

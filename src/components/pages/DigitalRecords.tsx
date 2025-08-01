@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import jsPDF from "jspdf";
-import "jspdf-autotable";
 
 interface Record {
   _id?: string;
@@ -23,6 +21,10 @@ const DigitalRecords = () => {
   });
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    fetchRecords();
+  }, []);
+
   const fetchRecords = async () => {
     try {
       const response = await axios.get("http://localhost:8000/api/records");
@@ -31,10 +33,6 @@ const DigitalRecords = () => {
       console.error("Failed to fetch records", err);
     }
   };
-
-  useEffect(() => {
-    fetchRecords();
-  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -67,52 +65,29 @@ const DigitalRecords = () => {
     }
   };
 
-  const exportPDF = () => {
-    if (!records.length) {
-      alert("No records to export");
-      return;
-    }
-
-    const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text("Digital Records Report", 14, 16);
-    doc.setFontSize(12);
-
-    const tableColumn = ["Type", "Category", "Amount (₹)", "Customer", "Date"];
-    const tableRows = records.map((record) => [
-      record.type,
-      record.category || "N/A",
-      record.amount.toFixed(2),
-      record.customer || "N/A",
-      new Date(record.date).toLocaleDateString(),
-    ]);
-
-    doc.autoTable({
-      head: [tableColumn],
-      body: tableRows,
-      startY: 22,
-    });
-
-    doc.save("digital-records.pdf");
-  };
-
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">Digital Records</h2>
+    <div className="p-6 min-h-screen bg-[#f5f7fb]">
+      <h2 className="text-3xl font-semibold mb-6 text-indigo-700">Digital Records</h2>
 
-      <div className="flex gap-2 mb-4 flex-wrap">
-        <select name="type" value={formData.type} onChange={handleChange} className="border px-2 py-1">
+      <div className="flex gap-2 mb-6 flex-wrap items-end">
+        <select
+          name="type"
+          value={formData.type}
+          onChange={handleChange}
+          className="border rounded px-3 py-2 shadow-sm"
+        >
           <option value="Income">Income</option>
           <option value="Expense">Expense</option>
           <option value="Due">Due</option>
         </select>
+
         <input
           type="text"
           name="category"
           placeholder="Category"
           value={formData.category}
           onChange={handleChange}
-          className="border px-2 py-1"
+          className="border rounded px-3 py-2 shadow-sm"
         />
         <input
           type="number"
@@ -120,7 +95,7 @@ const DigitalRecords = () => {
           placeholder="Amount"
           value={formData.amount}
           onChange={handleChange}
-          className="border px-2 py-1"
+          className="border rounded px-3 py-2 shadow-sm"
         />
         <input
           type="text"
@@ -128,54 +103,49 @@ const DigitalRecords = () => {
           placeholder="Customer"
           value={formData.customer}
           onChange={handleChange}
-          className="border px-2 py-1"
+          className="border rounded px-3 py-2 shadow-sm"
         />
         <input
           type="date"
           name="date"
           value={formData.date}
           onChange={handleChange}
-          className="border px-2 py-1"
+          className="border rounded px-3 py-2 shadow-sm"
         />
-      </div>
-
-      {error && <p className="text-red-500 mb-2">{error}</p>}
-
-      <div className="flex gap-4 mb-4">
-        <button onClick={handleAddRecord} className="bg-blue-600 text-white px-4 py-2 rounded">
+        <button
+          onClick={handleAddRecord}
+          className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 shadow"
+        >
           Add Record
         </button>
-        <button onClick={exportPDF} className="bg-green-600 text-white px-4 py-2 rounded">
-          Export PDF
-        </button>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full border">
+      {error && <p className="text-red-500 mb-4">{error}</p>}
+
+      <div className="overflow-x-auto rounded shadow-sm">
+        <table className="min-w-full bg-white border">
           <thead>
-            <tr className="bg-gray-200">
-              <th className="border px-4 py-2">Type</th>
-              <th className="border px-4 py-2">Category</th>
-              <th className="border px-4 py-2">Amount</th>
-              <th className="border px-4 py-2">Customer</th>
-              <th className="border px-4 py-2">Date</th>
-              <th className="border px-4 py-2">Actions</th>
+            <tr className="bg-indigo-100 text-indigo-800">
+              <th className="border px-4 py-2 text-left">Type</th>
+              <th className="border px-4 py-2 text-left">Category</th>
+              <th className="border px-4 py-2 text-left">Amount</th>
+              <th className="border px-4 py-2 text-left">Customer</th>
+              <th className="border px-4 py-2 text-left">Date</th>
+              <th className="border px-4 py-2 text-left">Actions</th>
             </tr>
           </thead>
           <tbody>
             {records.map((record) => (
-              <tr key={record._id}>
+              <tr key={record._id} className="hover:bg-gray-50 transition">
                 <td className="border px-4 py-2">{record.type}</td>
                 <td className="border px-4 py-2">{record.category || "—"}</td>
                 <td className="border px-4 py-2">₹{record.amount}</td>
                 <td className="border px-4 py-2">{record.customer || "—"}</td>
-                <td className="border px-4 py-2">
-                  {new Date(record.date).toLocaleDateString()}
-                </td>
+                <td className="border px-4 py-2">{new Date(record.date).toLocaleDateString()}</td>
                 <td className="border px-4 py-2">
                   <button
                     onClick={() => handleDelete(record._id)}
-                    className="text-red-600 hover:underline"
+                    className="text-red-600 hover:underline text-sm"
                   >
                     Delete
                   </button>
