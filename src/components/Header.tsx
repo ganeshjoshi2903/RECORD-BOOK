@@ -1,32 +1,13 @@
-// src/components/Header.tsx
 import React from 'react';
-import { BookOpen, LogIn, UserPlus, Home } from 'lucide-react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { BookOpen, LogIn, UserPlus } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 
 const Header = () => {
   const location = useLocation();
-  const navigate = useNavigate();
 
   const isDashboardRoute = location.pathname.startsWith('/dashboard');
 
   if (isDashboardRoute) return null;
-
-  const handleScrollLink = (sectionId: string) => {
-    if (location.pathname !== '/') {
-      navigate(`/#${sectionId}`);
-    } else {
-      const section = document.getElementById(sectionId);
-      section?.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const goToHome = () => {
-    if (location.pathname !== '/') {
-      navigate('/');
-    } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
 
   return (
     <header className="bg-white/90 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-50">
@@ -43,24 +24,24 @@ const Header = () => {
 
             {/* Nav Links */}
             <nav className="hidden md:flex space-x-8">
-              <button
-                onClick={goToHome}
+              <Link
+                to="/"
                 className="text-gray-600 hover:text-teal-600 transition-colors duration-200 font-medium"
               >
                 Home
-              </button>
-              <button
-                onClick={() => handleScrollLink('features')}
+              </Link>
+              <Link
+                to="/features"
                 className="text-gray-600 hover:text-teal-600 transition-colors duration-200 font-medium"
               >
                 Features
-              </button>
-              <button
-                onClick={() => handleScrollLink('about')}
+              </Link>
+              <Link
+                to="/about"
                 className="text-gray-600 hover:text-teal-600 transition-colors duration-200 font-medium"
               >
                 About
-              </button>
+              </Link>
             </nav>
           </div>
 

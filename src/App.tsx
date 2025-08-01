@@ -4,8 +4,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import Header from './components/Header';
 import Hero from './components/Hero';
-import Features from './components/Features';
-import AboutUs from './components/AboutUs';
 import ScrollToHash from './components/scroll';
 
 import Login from './components/Login';
@@ -22,29 +20,54 @@ import Notifications from './components/pages/Notifications';
 import EditProfile from './components/pages/EditProfile';
 import ChangePassword from './components/pages/ChangePassword';
 
+import Features from './components/Features';
+import AboutUs from './components/AboutUs';
+
 function App() {
   return (
     <Router>
       <div className="min-h-screen">
-        <ScrollToHash /> {/* ✅ This handles scrolling after route change */}
+        <ScrollToHash />
 
         <Routes>
+          {/* Landing Page only contains Hero now */}
           <Route
             path="/"
             element={
               <>
                 <Header />
                 <Hero />
-                <Features />
-                <AboutUs /> {/* ✅ ABOUT US is now part of homepage */}
               </>
             }
           />
 
-          {/* Removed /about route - no longer needed */}
+          {/* Separate Features Page */}
+          <Route
+            path="/features"
+            element={
+              <>
+                <Header />
+                <Features />
+              </>
+            }
+          />
+
+          {/* Separate About Page */}
+          <Route
+            path="/about"
+            element={
+              <>
+                <Header />
+                <AboutUs />
+              </>
+            }
+          />
+
+          {/* Auth Pages */}
           <Route path="/login" element={<><Header /><Login /></>} />
           <Route path="/signup" element={<><Header /><SignUp /></>} />
 
+          {/* Dashboard Pages */}
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="records" element={<DigitalRecords />} />
