@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -10,6 +11,7 @@ const SignUp = () => {
     password: ''
   });
 
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,8 +36,8 @@ const SignUp = () => {
         return;
       }
 
-      alert('Signup successful! Please login.');
-      navigate('/login');
+      // ✅ Redirect to dashboard instead of login
+      navigate('/dashboard');
     } catch (err) {
       setError('Something went wrong. Try again.');
     }
@@ -75,15 +77,27 @@ const SignUp = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-600">Password</label>
-            <input
-              name="password"
-              type="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Create a password"
-              className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-cyan-400 focus:outline-none"
-              required
-            />
+            <div className="relative">
+              <input
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Create a password"
+                className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-cyan-400 focus:outline-none pr-10"
+                required
+              />
+              <div
+                className="absolute inset-y-0 right-3 flex items-center cursor-pointer"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeSlashIcon className="h-5 w-5 text-gray-500" />
+                ) : (
+                  <EyeIcon className="h-5 w-5 text-gray-500" />
+                )}
+              </div>
+            </div>
           </div>
 
           {error && <p className="text-sm text-red-500 text-center">{error}</p>}
