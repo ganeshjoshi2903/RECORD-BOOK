@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
+
 
 interface DueRecord {
   _id: string;
@@ -38,14 +39,18 @@ const DueTracker = () => {
   };
 
   const generatePDF = (record: DueRecord) => {
-    const doc = new jsPDF();
-    doc.text("Due Record Details", 14, 16);
-    doc.autoTable({
-      head: [["Customer", "Amount", "Due Date"]],
-      body: [[record.customer?.name || "N/A", `₹${record.amount}`, record.dueDate || "N/A"]],
-    });
-    doc.save(`DueRecord-${record._id}.pdf`);
-  };
+  const doc = new jsPDF();
+  doc.text("Due Record Details", 14, 16);
+
+  autoTable(doc, {
+    head: [["Customer", "Amount", "Due Date"]],
+    body: [[record.customer?.name || "N/A", `₹${record.amount}`, record.dueDate || "N/A"]],
+    startY: 20,
+  });
+
+  doc.save(`DueRecord-${record._id}.pdf`);
+};
+
 
   return (
     <div className="p-6">

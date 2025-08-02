@@ -21,9 +21,18 @@ interface Transaction {
   amount: number;
 }
 
-interface Due extends Transaction {
-  dateDue?: string;
+// interface Due extends Transaction {
+//   dateDue?: string;
+// }
+interface Due {
+  _id: string;
+  customer: {
+    name: string;
+  };
+  amount: number;
+  dueDate: string;
 }
+
 
 const Dashboard: React.FC = () => {
   const [totalIncome, setTotalIncome] = useState<number>(0);
@@ -174,10 +183,7 @@ const Dashboard: React.FC = () => {
           {
             title: "Recent Dues",
             icon: <CalendarDays className="text-yellow-600" />,
-            data: recentDues.map((d) => ({
-              date: d.dateDue || d.date,
-              amount: d.amount,
-            })),
+            data: recentDues,
             header: "bg-yellow-100",
             alt: "bg-yellow-50",
             color: "text-yellow-800",
@@ -194,23 +200,39 @@ const Dashboard: React.FC = () => {
               <table className="w-full text-sm rounded-xl">
                 <thead className={`${section.header} ${section.color}`}>
                   <tr>
-                    <th className="text-left px-3 py-2">Date</th>
+                    {section.title === "Recent Dues" ? (
+                      <>
+                        <th className="text-left px-3 py-2">Customer</th>
+                        <th className="text-left px-3 py-2">Due Date</th>
+                      </>
+                    ) : (
+                      <th className="text-left px-3 py-2">Date</th>
+                    )}
                     <th className="text-left px-3 py-2">Amount</th>
                   </tr>
                 </thead>
+
                 <tbody>
-                  {section.data.slice(0, 4).map((item, i) => (
+                  {section.data.slice(0, 4).map((item: any, i) => (
                     <tr
                       key={i}
-                      className={`${
-                        i % 2 === 0 ? "bg-white" : section.alt
-                      } hover:bg-gray-50`}
+                      className={`${i % 2 === 0 ? "bg-white" : section.alt
+                        } hover:bg-gray-50`}
                     >
-                      <td className="px-3 py-2">{formatDate(item.date)}</td>
+                      {section.title === "Recent Dues" ? (
+                        <>
+                          <td className="px-3 py-2">{item.customer?.name || "N/A"}</td>
+                          <td className="px-3 py-2">{formatDate(item.dueDate)}</td>
+                        </>
+                      ) : (
+                        <td className="px-3 py-2">{formatDate(item.date)}</td>
+                      )}
                       <td className="px-3 py-2 font-medium">₹{item.amount}</td>
                     </tr>
                   ))}
                 </tbody>
+
+
               </table>
             </div>
           </div>

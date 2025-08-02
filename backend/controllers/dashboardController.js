@@ -1,4 +1,4 @@
-import DigitalRecord from '../models/digitalRecord.js';
+import DigitalRecord from '../models/DigitalRecord.js';
 import Customer from '../models/Customer.js';
 
 export const getDashboardStats = async (req, res) => {
@@ -27,18 +27,43 @@ export const getExpenseRecords = async (req, res) => {
   res.json(records);
 };
 
+// export const getDueRecords = async (req, res) => {
+//   try {
+//     const dueRecords = await DigitalRecord.find({ type: 'Due' }).populate('customer', 'name');
+
+//     const enriched = dueRecords.map((r) => ({
+//       _id: r._id,
+//       customer: {
+//         name: r.customer?.name || 'N/A',
+//       },
+//       amount: r.amount || 0,
+//       dueDate: r.date || 'N/A',
+//     }));
+
+//     res.json(enriched);
+//   } catch (err) {
+//     console.error("Error in getDueRecords:", err.message);
+//     res.status(500).json({ message: 'Failed to fetch due records' });
+//   }
+// };
 export const getDueRecords = async (req, res) => {
   try {
-    const dueRecords = await DigitalRecord.find({ type: 'Due' }).populate('customer', 'name');
+    const dueRecords = await DigitalRecord.find({ type: 'Due' })
+      .populate('customer', 'name')
+      .lean();
+      
 
-    const enriched = dueRecords.map((r) => ({
-      _id: r._id,
-      customer: {
-        name: r.customer?.name || 'N/A',
-      },
-      amount: r.amount || 0,
-      dueDate: r.date || 'N/A',
-    }));
+    const enriched = dueRecords
+      .filter(r => r.customer) 
+      .map((r) => ({
+        _id: r._id,
+        customer: {
+          name: r.customer.name,
+        },
+        amount: r.amount || 0,
+        dueDate: r.date || 'N/A',
+      }));
+      console.log(enriched);
 
     res.json(enriched);
   } catch (err) {
@@ -46,3 +71,8 @@ export const getDueRecords = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch due records' });
   }
 };
+
+// export const getDueRecords = async (req, res) => {
+//   const records = await DigitalRecord.find({ type: 'Due' });
+//   res.json(records);
+// };
