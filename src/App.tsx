@@ -17,8 +17,8 @@ import CustomerManagement from './components/pages/CustomerManagement';
 import DueTracker from './components/pages/DueTracker';
 import Profile from './components/pages/Profile';
 import Notifications from './components/pages/Notifications';
-import EditProfile from './components/pages/EditProfile';
-import ChangePassword from './components/pages/ChangePassword';
+import EditProfile from './components/pages/Editprofile';
+import ChangePassword from './components/pages/changepassword';
 
 import Features from './components/Features';
 import AboutUs from './components/AboutUs';
