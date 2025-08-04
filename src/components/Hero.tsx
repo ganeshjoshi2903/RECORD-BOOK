@@ -83,7 +83,14 @@ const Hero = () => {
   );
 };
 
-const FeatureCard = ({
+type FeatureCardProps = {
+  icon: string;
+  title: string;
+  description: string;
+  gradient: string;
+};
+
+const FeatureCard: React.FC<FeatureCardProps> = ({
   icon,
   title,
   description,
@@ -99,5 +106,6 @@ const FeatureCard = ({
     <p className="text-sm text-gray-600">{description}</p>
   </div>
 );
+
 
 export default Hero;
