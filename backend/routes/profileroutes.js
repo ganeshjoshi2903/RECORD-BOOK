@@ -3,7 +3,7 @@ import {
   getProfile,
   updateProfile,
   updatePassword, // ✅ Corrected function name
-} from '../controllers/profileController.js';
+} from '../controllers/profilecontroller.js';
 import authMiddleware from '../middleware/authenticate.js';
 
 const router = express.Router();
