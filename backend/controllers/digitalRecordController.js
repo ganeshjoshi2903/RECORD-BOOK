@@ -1,4 +1,4 @@
-import DigitalRecord from '../models/digitalRecord.js';
+import DigitalRecord from '../models/DigitalRecord.js';
 import Customer from '../models/Customer.js';
 
 export const createRecord = async (req, res) => {

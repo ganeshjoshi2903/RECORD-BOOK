@@ -24,7 +24,7 @@ const digitalRecordSchema = new mongoose.Schema({
   },
 });
 
-// ✅ Prevent OverwriteModelError:
+
 const DigitalRecord = mongoose.models.DigitalRecord || mongoose.model('DigitalRecord', digitalRecordSchema);
 
 export default DigitalRecord;
