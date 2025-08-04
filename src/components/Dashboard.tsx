@@ -42,7 +42,7 @@ const Dashboard: React.FC = () => {
   const [recentExpenses, setRecentExpenses] = useState<Transaction[]>([]);
   const [recentDues, setRecentDues] = useState<Due[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-
+const API_URL = import.meta.env.VITE_API_URL;
   const fetchDashboardData = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -51,10 +51,10 @@ const Dashboard: React.FC = () => {
       const headers = { Authorization: `Bearer ${token}` };
 
       const [dashboardRes, incomeRes, expenseRes, dueRes] = await Promise.all([
-        fetch("http://localhost:8000/api/dashboard", { headers }),
-        fetch("http://localhost:8000/api/dashboard/income-records", { headers }),
-        fetch("http://localhost:8000/api/dashboard/expense-records", { headers }),
-        fetch("http://localhost:8000/api/dashboard/due-records", { headers }),
+        fetch(`${API_URL}/api/dashboard`, { headers }),
+        fetch(`${API_URL}/api/dashboard/income-records`, { headers }),
+        fetch(`${API_URL}/api/dashboard/expense-records`, { headers }),
+        fetch(`${API_URL}/api/dashboard/due-records`, { headers }),
       ]);
 
       const dashboardData = await dashboardRes.json();

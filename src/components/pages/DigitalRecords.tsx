@@ -20,14 +20,14 @@ const DigitalRecords = () => {
     date: "",
   });
   const [error, setError] = useState("");
-
+const API_URL = import.meta.env.VITE_API_URL;
   useEffect(() => {
     fetchRecords();
   }, []);
 
   const fetchRecords = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/records");
+      const response = await axios.get(`${API_URL}/api/records`);
       setRecords(response.data);
     } catch (err) {
       console.error("Failed to fetch records", err);
@@ -40,7 +40,7 @@ const DigitalRecords = () => {
 
   const handleAddRecord = async () => {
     try {
-      const response = await axios.post("http://localhost:8000/api/records", formData);
+      const response = await axios.post(`${API_URL}/api/records`, formData);
       setRecords((prev) => [...prev, response.data]);
       setFormData({ type: "Income", category: "", amount: 0, customer: "", date: "" });
       setError("");
@@ -56,7 +56,7 @@ const DigitalRecords = () => {
     if (!confirmed) return;
 
     try {
-      await axios.delete(`http://localhost:8000/api/records/${id}`);
+      await axios.delete(`${API_URL}/api/records/${id}`);
       setRecords((prev) => prev.filter((rec) => rec._id !== id));
       setError("");
     } catch (err) {

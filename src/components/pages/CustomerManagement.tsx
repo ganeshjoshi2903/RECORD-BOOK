@@ -6,7 +6,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import axios from "axios";
 
-const BACKEND_URL = "http://localhost:8000";
+// const BACKEND_URL = "http://localhost:8000";
 
 type Customer = {
   _id: string;
@@ -28,11 +28,11 @@ const CustomerManagement: React.FC = () => {
   });
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-
+const API_URL = import.meta.env.VITE_API_URL;
   const fetchCustomers = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${BACKEND_URL}/api/customers`);
+      const res = await axios.get(`${API_URL}/api/customers`);
       setCustomers(res.data);
     } catch (err) {
       console.error("Error fetching customers:", err);
@@ -64,7 +64,7 @@ const payload = {
 
 
     try {
-      await axios.post(`${BACKEND_URL}/api/customers`, payload);
+      await axios.post(`${API_URL}/api/customers`, payload);
       setNewCustomer({ name: "", phone: "", photo: "", balance: "" });
       fetchCustomers();
     } catch (err) {
@@ -78,7 +78,7 @@ const payload = {
     if (!confirmDelete) return;
 
     try {
-      await axios.delete(`${BACKEND_URL}/api/customers/${id}`);
+      await axios.delete(`${API_URL}/api/customers/${id}`);
       fetchCustomers();
     } catch (err: any) {
       console.error("Error deleting customer:", err.response?.data || err.message);

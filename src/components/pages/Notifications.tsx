@@ -4,11 +4,11 @@ import axios from "axios";
 const Notification = () => {
   const [notifications, setNotifications] = useState([]);
   const token = localStorage.getItem("token");
-
+const API_URL = import.meta.env.VITE_API_URL;
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/api/notifications/user", {
+        const res = await axios.get(`${API_URL}/api/notifications/user`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setNotifications(res.data);

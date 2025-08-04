@@ -37,12 +37,12 @@ const Profile: React.FC = () => {
   const [passwordData, setPasswordData] = useState<PasswordData>({ currentPassword: "", newPassword: "" });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-
+const API_URL = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
 
   const fetchProfile = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/profile", {
+      const res = await axios.get(`${API_URL}/api/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProfile(res.data);

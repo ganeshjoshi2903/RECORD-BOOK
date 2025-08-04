@@ -15,14 +15,14 @@ interface DueRecord {
 
 const DueTracker = () => {
   const [dueRecords, setDueRecords] = useState<DueRecord[]>([]);
-
+const API_URL = import.meta.env.VITE_API_URL;
   useEffect(() => {
     fetchDueRecords();
   }, []);
 
   const fetchDueRecords = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/dashboard/due-records");
+      const res = await axios.get(`${API_URL}/api/dashboard/due-records`);
       setDueRecords(res.data);
     } catch (err) {
       console.error("Error fetching due records:", err);
@@ -31,7 +31,7 @@ const DueTracker = () => {
 
   const deleteRecord = async (id: string) => {
     try {
-      await axios.delete(`http://localhost:8000/api/records/${id}`);
+      await axios.delete(`${API_URL}/api/records/${id}`);
       setDueRecords(prev => prev.filter(record => record._id !== id));
     } catch (err) {
       console.error("Error deleting record:", err);

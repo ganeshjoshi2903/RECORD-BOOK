@@ -10,7 +10,7 @@ const ChangePassword = () => {
     newPassword: "",
     confirmPassword: "",
   });
-
+const API_URL = import.meta.env.VITE_API_URL;
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
@@ -29,7 +29,7 @@ const ChangePassword = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.put(
-        "http://localhost:8000/api/profile/password",
+        `${API_URL}/api/profile/password`,
         {
           currentPassword: form.currentPassword,
           newPassword: form.newPassword,
