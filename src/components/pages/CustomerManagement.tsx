@@ -26,6 +26,7 @@ const CustomerManagement: React.FC = () => {
     photo: "",
     balance: "",
   });
+  const[error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 const API_URL = import.meta.env.VITE_API_URL;
@@ -46,8 +47,10 @@ const API_URL = import.meta.env.VITE_API_URL;
   }, []);
 
   const handleAddCustomer = async () => {
-    if (!newCustomer.name || !newCustomer.phone) return;
-
+    if (!newCustomer.name || !newCustomer.phone || !newCustomer.balance) {
+      setError("Please fill in all required fields.");
+      return;
+    }
     const parsedBalance = newCustomer.balance.trim() === "" ? 0 : parseFloat(newCustomer.balance);
 
 if (isNaN(parsedBalance) || parsedBalance < 0) {
@@ -137,7 +140,7 @@ const payload = {
           />
           <input
             type="text"
-            placeholder="Photo URL"
+            placeholder="Photo URL (Optional)"
             className="border px-3 py-2 rounded"
             value={newCustomer.photo}
             onChange={(e) =>
@@ -160,6 +163,7 @@ const payload = {
         >
           Add Customer
         </button>
+        {error && <p className="text-red-500">{error}</p>}
       </div>
 
       {/* Search */}

@@ -39,6 +39,10 @@ const API_URL = import.meta.env.VITE_API_URL;
   };
 
   const handleAddRecord = async () => {
+    if(!formData.type || !formData.category || !formData.amount || !formData.customer || !formData.date) {
+      setError("All fields are required");
+      return
+    }
     try {
       const response = await axios.post(`${API_URL}/api/records`, formData);
       setRecords((prev) => [...prev, response.data]);
