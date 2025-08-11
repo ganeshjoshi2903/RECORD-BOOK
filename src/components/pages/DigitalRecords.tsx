@@ -6,7 +6,6 @@ interface Record {
   type: string;
   category: string;
   amount: number;
-  customer: string;
   date: string;
 }
 
@@ -16,11 +15,11 @@ const DigitalRecords = () => {
     type: "Income",
     category: "",
     amount: 0,
-    customer: "",
     date: "",
   });
   const [error, setError] = useState("");
-const API_URL = import.meta.env.VITE_API_URL;
+  const API_URL = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
     fetchRecords();
   }, []);
@@ -34,19 +33,21 @@ const API_URL = import.meta.env.VITE_API_URL;
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleAddRecord = async () => {
-    if(!formData.type || !formData.category || !formData.amount || !formData.customer || !formData.date) {
+    if (!formData.type || !formData.category || !formData.amount || !formData.date) {
       setError("All fields are required");
-      return
+      return;
     }
     try {
       const response = await axios.post(`${API_URL}/api/records`, formData);
       setRecords((prev) => [...prev, response.data]);
-      setFormData({ type: "Income", category: "", amount: 0, customer: "", date: "" });
+      setFormData({ type: "Income", category: "", amount: 0, date: "" });
       setError("");
     } catch (err) {
       console.error("Add Record Error", err);
@@ -56,7 +57,9 @@ const API_URL = import.meta.env.VITE_API_URL;
 
   const handleDelete = async (id?: string) => {
     if (!id) return;
-    const confirmed = window.confirm("Are you sure you want to delete this record?");
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this record?"
+    );
     if (!confirmed) return;
 
     try {
@@ -71,8 +74,11 @@ const API_URL = import.meta.env.VITE_API_URL;
 
   return (
     <div className="p-6 min-h-screen bg-[#f5f7fb]">
-      <h2 className="text-3xl font-semibold mb-6 text-indigo-700">Digital Records</h2>
+      <h2 className="text-3xl font-semibold mb-6 text-indigo-700">
+        Digital Records
+      </h2>
 
+      {/* Add Record Form */}
       <div className="flex gap-2 mb-6 flex-wrap items-end">
         <select
           name="type"
@@ -102,14 +108,6 @@ const API_URL = import.meta.env.VITE_API_URL;
           className="border rounded px-3 py-2 shadow-sm"
         />
         <input
-          type="text"
-          name="customer"
-          placeholder="Customer"
-          value={formData.customer}
-          onChange={handleChange}
-          className="border rounded px-3 py-2 shadow-sm"
-        />
-        <input
           type="date"
           name="date"
           value={formData.date}
@@ -126,6 +124,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 
       {error && <p className="text-red-500 mb-4">{error}</p>}
 
+      {/* Records Table */}
       <div className="overflow-x-auto rounded shadow-sm">
         <table className="min-w-full bg-white border">
           <thead>
@@ -133,7 +132,6 @@ const API_URL = import.meta.env.VITE_API_URL;
               <th className="border px-4 py-2 text-left">Type</th>
               <th className="border px-4 py-2 text-left">Category</th>
               <th className="border px-4 py-2 text-left">Amount</th>
-              <th className="border px-4 py-2 text-left">Customer</th>
               <th className="border px-4 py-2 text-left">Date</th>
               <th className="border px-4 py-2 text-left">Actions</th>
             </tr>
@@ -144,8 +142,9 @@ const API_URL = import.meta.env.VITE_API_URL;
                 <td className="border px-4 py-2">{record.type}</td>
                 <td className="border px-4 py-2">{record.category || "—"}</td>
                 <td className="border px-4 py-2">₹{record.amount}</td>
-                <td className="border px-4 py-2">{record.customer || "—"}</td>
-                <td className="border px-4 py-2">{new Date(record.date).toLocaleDateString()}</td>
+                <td className="border px-4 py-2">
+                  {new Date(record.date).toLocaleDateString()}
+                </td>
                 <td className="border px-4 py-2">
                   <button
                     onClick={() => handleDelete(record._id)}
@@ -158,7 +157,7 @@ const API_URL = import.meta.env.VITE_API_URL;
             ))}
             {records.length === 0 && (
               <tr>
-                <td colSpan={6} className="text-center text-gray-500 py-4">
+                <td colSpan={5} className="text-center text-gray-500 py-4">
                   No records found.
                 </td>
               </tr>

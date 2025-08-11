@@ -1,4 +1,3 @@
-// ✅ Updated CustomerManagement.tsx (with working delete & profile photo rendering)
 import React, { useEffect, useState } from "react";
 import { UserPlus, Users2, Trash2 } from "lucide-react";
 import { FaDownload } from "react-icons/fa";
@@ -6,13 +5,11 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import axios from "axios";
 
-// const BACKEND_URL = "http://localhost:8000";
-
 type Customer = {
   _id: string;
   name: string;
   phone: string;
-  photo?: string; // 📸 photo is optional
+  photo?: string;
   balance: number;
   createdAt?: string;
   updatedAt?: string;
@@ -26,10 +23,12 @@ const CustomerManagement: React.FC = () => {
     photo: "",
     balance: "",
   });
-  const[error, setError] = useState("");
+  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-const API_URL = import.meta.env.VITE_API_URL;
+
+  const API_URL = import.meta.env.VITE_API_URL;
+
   const fetchCustomers = async () => {
     setLoading(true);
     try {
@@ -47,24 +46,43 @@ const API_URL = import.meta.env.VITE_API_URL;
   }, []);
 
   const handleAddCustomer = async () => {
+    setError("");
+
+    // Validate required fields
     if (!newCustomer.name || !newCustomer.phone || !newCustomer.balance) {
       setError("Please fill in all required fields.");
       return;
     }
-    const parsedBalance = newCustomer.balance.trim() === "" ? 0 : parseFloat(newCustomer.balance);
 
-if (isNaN(parsedBalance) || parsedBalance < 0) {
-  alert("Please enter a valid non-negative balance.");
-  return;
-}
+    // Safe duplicate check (avoids .trim() error)
+    const duplicate = customers.find((c) => {
+      const existingName = (c.name || "").trim().toLowerCase();
+      const existingPhone = (c.phone || "").trim();
+      const newName = (newCustomer.name || "").trim().toLowerCase();
+      const newPhone = (newCustomer.phone || "").trim();
 
-const payload = {
-  name: newCustomer.name,
-  phone: newCustomer.phone,
-  photo: newCustomer.photo,
-  balance: parsedBalance,
-};
+      return existingName === newName || existingPhone === newPhone;
+    });
 
+    if (duplicate) {
+      setError("Customer with this name or phone number already exists.");
+      return;
+    }
+
+    const parsedBalance =
+      newCustomer.balance.trim() === "" ? 0 : parseFloat(newCustomer.balance);
+
+    if (isNaN(parsedBalance) || parsedBalance < 0) {
+      setError("Please enter a valid non-negative balance.");
+      return;
+    }
+
+    const payload = {
+      name: newCustomer.name.trim(),
+      phone: newCustomer.phone.trim(),
+      photo: newCustomer.photo.trim(),
+      balance: parsedBalance,
+    };
 
     try {
       await axios.post(`${API_URL}/api/customers`, payload);
@@ -72,40 +90,45 @@ const payload = {
       fetchCustomers();
     } catch (err) {
       console.error("Error adding customer:", err);
-      alert("Failed to add customer.");
+      setError("Failed to add customer.");
     }
   };
 
   const handleDeleteCustomer = async (id: string) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this customer?");
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this customer?"
+    );
     if (!confirmDelete) return;
 
     try {
       await axios.delete(`${API_URL}/api/customers/${id}`);
       fetchCustomers();
     } catch (err: any) {
-      console.error("Error deleting customer:", err.response?.data || err.message);
+      console.error(
+        "Error deleting customer:",
+        err.response?.data || err.message
+      );
       alert("Delete failed: " + (err.response?.data?.message || err.message));
     }
   };
 
   const exportStatement = (cust: Customer) => {
-  const doc = new jsPDF();
-  doc.text(`${cust.name} - Statement`, 10, 10);
+    const doc = new jsPDF();
+    doc.text(`${cust.name} - Statement`, 10, 10);
 
-  const balance = typeof cust.balance === 'number' ? cust.balance : 0;
+    const balance =
+      typeof cust.balance === "number" ? cust.balance : 0;
 
-  autoTable(doc, {
-    head: [["Name", "Phone", "Balance"]],
-    body: [[cust.name, cust.phone, `₹${balance.toFixed(2)}`]],
-  });
+    autoTable(doc, {
+      head: [["Name", "Phone", "Balance"]],
+      body: [[cust.name, cust.phone, `₹${balance.toFixed(2)}`]],
+    });
 
-  doc.save(`${cust.name}_statement.pdf`);
-};
-
+    doc.save(`${cust.name}_statement.pdf`);
+  };
 
   const filtered = customers.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase())
+    (c.name || "").toLowerCase().includes(search.toLowerCase())
   );
 
   return (
