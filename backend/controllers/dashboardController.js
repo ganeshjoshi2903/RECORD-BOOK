@@ -1,6 +1,6 @@
 import DigitalRecord from '../models/DigitalRecord.js';
-import Customer from '../models/Customer.js';
 
+// 📊 Dashboard total stats
 export const getDashboardStats = async (req, res) => {
   try {
     const income = await DigitalRecord.find({ type: 'Income' });
@@ -17,53 +17,37 @@ export const getDashboardStats = async (req, res) => {
   }
 };
 
+// 💰 Income records
 export const getIncomeRecords = async (req, res) => {
-  const records = await DigitalRecord.find({ type: 'Income' });
-  res.json(records);
+  try {
+    const records = await DigitalRecord.find({ type: 'Income' }).sort({ date: -1 });
+    res.json(records);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch income records' });
+  }
 };
 
+// 💸 Expense records
 export const getExpenseRecords = async (req, res) => {
-  const records = await DigitalRecord.find({ type: 'Expense' });
-  res.json(records);
+  try {
+    const records = await DigitalRecord.find({ type: 'Expense' }).sort({ date: -1 });
+    res.json(records);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch expense records' });
+  }
 };
 
-// export const getDueRecords = async (req, res) => {
-//   try {
-//     const dueRecords = await DigitalRecord.find({ type: 'Due' }).populate('customer', 'name');
-
-//     const enriched = dueRecords.map((r) => ({
-//       _id: r._id,
-//       customer: {
-//         name: r.customer?.name || 'N/A',
-//       },
-//       amount: r.amount || 0,
-//       dueDate: r.date || 'N/A',
-//     }));
-
-//     res.json(enriched);
-//   } catch (err) {
-//     console.error("Error in getDueRecords:", err.message);
-//     res.status(500).json({ message: 'Failed to fetch due records' });
-//   }
-// };
+// 📅 Due records (without customer)
 export const getDueRecords = async (req, res) => {
   try {
-    const dueRecords = await DigitalRecord.find({ type: 'Due' })
-      .populate('customer', 'name')
-      .lean();
-      
+    const dueRecords = await DigitalRecord.find({ type: 'Due' }).sort({ date: 1 });
 
-    const enriched = dueRecords
-      .filter(r => r.customer) 
-      .map((r) => ({
-        _id: r._id,
-        customer: {
-          name: r.customer.name,
-        },
-        amount: r.amount || 0,
-        dueDate: r.date || 'N/A',
-      }));
-      console.log(enriched);
+    // Directly send due records without customer info
+    const enriched = dueRecords.map(r => ({
+      _id: r._id,
+      amount: r.amount || 0,
+      dueDate: r.date || 'N/A',
+    }));
 
     res.json(enriched);
   } catch (err) {
@@ -71,8 +55,3 @@ export const getDueRecords = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch due records' });
   }
 };
-
-// export const getDueRecords = async (req, res) => {
-//   const records = await DigitalRecord.find({ type: 'Due' });
-//   res.json(records);
-// };
