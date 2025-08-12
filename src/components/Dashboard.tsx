@@ -21,18 +21,11 @@ interface Transaction {
   amount: number;
 }
 
-// interface Due extends Transaction {
-//   dateDue?: string;
-// }
 interface Due {
   _id: string;
-  customer: {
-    name: string;
-  };
   amount: number;
   dueDate: string;
 }
-
 
 const Dashboard: React.FC = () => {
   const [totalIncome, setTotalIncome] = useState<number>(0);
@@ -42,7 +35,9 @@ const Dashboard: React.FC = () => {
   const [recentExpenses, setRecentExpenses] = useState<Transaction[]>([]);
   const [recentDues, setRecentDues] = useState<Due[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-const API_URL = import.meta.env.VITE_API_URL;
+
+  const API_URL = import.meta.env.VITE_API_URL;
+
   const fetchDashboardData = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -65,9 +60,9 @@ const API_URL = import.meta.env.VITE_API_URL;
       setTotalIncome(dashboardData.totalIncome || 0);
       setTotalExpense(dashboardData.totalExpense || 0);
       setTotalDue(dashboardData.totalDue || 0);
-      setRecentIncome(incomeData || []);
-      setRecentExpenses(expenseData || []);
-      setRecentDues(dueData || []);
+      setRecentIncome(Array.isArray(incomeData) ? incomeData : []);
+      setRecentExpenses(Array.isArray(expenseData) ? expenseData : []);
+      setRecentDues(Array.isArray(dueData) ? dueData : []);
     } catch (err) {
       console.error("Error loading dashboard data:", err);
     } finally {
@@ -171,6 +166,7 @@ const API_URL = import.meta.env.VITE_API_URL;
             header: "bg-green-100",
             alt: "bg-green-50",
             color: "text-green-800",
+            dateKey: "date",
           },
           {
             title: "Recent Expenses",
@@ -179,6 +175,7 @@ const API_URL = import.meta.env.VITE_API_URL;
             header: "bg-red-100",
             alt: "bg-red-50",
             color: "text-red-800",
+            dateKey: "date",
           },
           {
             title: "Recent Dues",
@@ -187,6 +184,7 @@ const API_URL = import.meta.env.VITE_API_URL;
             header: "bg-yellow-100",
             alt: "bg-yellow-50",
             color: "text-yellow-800",
+            dateKey: "dueDate",
           },
         ].map((section, idx) => (
           <div key={idx} className="bg-white p-5 rounded-2xl shadow-sm">
@@ -200,39 +198,27 @@ const API_URL = import.meta.env.VITE_API_URL;
               <table className="w-full text-sm rounded-xl">
                 <thead className={`${section.header} ${section.color}`}>
                   <tr>
-                    {section.title === "Recent Dues" ? (
-                      <>
-                        <th className="text-left px-3 py-2">Customer</th>
-                        <th className="text-left px-3 py-2">Due Date</th>
-                      </>
-                    ) : (
-                      <th className="text-left px-3 py-2">Date</th>
-                    )}
+                    <th className="text-left px-3 py-2">Date</th>
                     <th className="text-left px-3 py-2">Amount</th>
                   </tr>
                 </thead>
-
                 <tbody>
-                  {section.data.slice(0, 4).map((item: any, i) => (
-                    <tr
-                      key={i}
-                      className={`${i % 2 === 0 ? "bg-white" : section.alt
+                  {(Array.isArray(section.data) ? section.data.slice(0, 4) : []).map(
+                    (item: any, i) => (
+                      <tr
+                        key={i}
+                        className={`${
+                          i % 2 === 0 ? "bg-white" : section.alt
                         } hover:bg-gray-50`}
-                    >
-                      {section.title === "Recent Dues" ? (
-                        <>
-                          <td className="px-3 py-2">{item.customer?.name || "N/A"}</td>
-                          <td className="px-3 py-2">{formatDate(item.dueDate)}</td>
-                        </>
-                      ) : (
-                        <td className="px-3 py-2">{formatDate(item.date)}</td>
-                      )}
-                      <td className="px-3 py-2 font-medium">₹{item.amount}</td>
-                    </tr>
-                  ))}
+                      >
+                        <td className="px-3 py-2">
+                          {formatDate(item[section.dateKey])}
+                        </td>
+                        <td className="px-3 py-2 font-medium">₹{item.amount}</td>
+                      </tr>
+                    )
+                  )}
                 </tbody>
-
-
               </table>
             </div>
           </div>

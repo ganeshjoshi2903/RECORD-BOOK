@@ -3,19 +3,16 @@ import axios from "axios";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-
 interface DueRecord {
   _id: string;
-  customer: {
-    name: string;
-  };
   amount: number;
   dueDate: string;
 }
 
 const DueTracker = () => {
   const [dueRecords, setDueRecords] = useState<DueRecord[]>([]);
-const API_URL = import.meta.env.VITE_API_URL;
+  const API_URL = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
     fetchDueRecords();
   }, []);
@@ -32,25 +29,24 @@ const API_URL = import.meta.env.VITE_API_URL;
   const deleteRecord = async (id: string) => {
     try {
       await axios.delete(`${API_URL}/api/records/${id}`);
-      setDueRecords(prev => prev.filter(record => record._id !== id));
+      setDueRecords((prev) => prev.filter((record) => record._id !== id));
     } catch (err) {
       console.error("Error deleting record:", err);
     }
   };
 
   const generatePDF = (record: DueRecord) => {
-  const doc = new jsPDF();
-  doc.text("Due Record Details", 14, 16);
+    const doc = new jsPDF();
+    doc.text("Due Record Details", 14, 16);
 
-  autoTable(doc, {
-    head: [["Customer", "Amount", "Due Date"]],
-    body: [[record.customer?.name || "N/A", `₹${record.amount}`, record.dueDate || "N/A"]],
-    startY: 20,
-  });
+    autoTable(doc, {
+      head: [["Amount", "Due Date"]],
+      body: [[`₹${record.amount}`, record.dueDate || "N/A"]],
+      startY: 20,
+    });
 
-  doc.save(`DueRecord-${record._id}.pdf`);
-};
-
+    doc.save(`DueRecord-${record._id}.pdf`);
+  };
 
   return (
     <div className="p-6">
@@ -60,7 +56,6 @@ const API_URL = import.meta.env.VITE_API_URL;
           <thead className="bg-gray-100 text-left">
             <tr>
               <th className="px-4 py-2 border">#</th>
-              <th className="px-4 py-2 border">Customer</th>
               <th className="px-4 py-2 border">Amount</th>
               <th className="px-4 py-2 border">Due Date</th>
               <th className="px-4 py-2 border">Actions</th>
@@ -69,13 +64,14 @@ const API_URL = import.meta.env.VITE_API_URL;
           <tbody>
             {dueRecords.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-4 text-gray-500">No due records found</td>
+                <td colSpan={4} className="text-center py-4 text-gray-500">
+                  No due records found
+                </td>
               </tr>
             ) : (
               dueRecords.map((record, index) => (
                 <tr key={record._id} className="border-t">
                   <td className="px-4 py-2 border">{index + 1}</td>
-                  <td className="px-4 py-2 border">{record.customer?.name || "N/A"}</td>
                   <td className="px-4 py-2 border">₹{record.amount}</td>
                   <td className="px-4 py-2 border">{record.dueDate || "N/A"}</td>
                   <td className="px-4 py-2 border space-x-2">

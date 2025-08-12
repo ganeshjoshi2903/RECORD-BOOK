@@ -44,6 +44,17 @@ const DigitalRecords = () => {
       setError("All fields are required");
       return;
     }
+
+    // ✅ Duplicate category check (case-insensitive)
+    const categoryExists = records.some(
+      (rec) => rec.category.trim().toLowerCase() === formData.category.trim().toLowerCase()
+    );
+
+    if (categoryExists) {
+      setError(`Category "${formData.category}" already exists`);
+      return;
+    }
+
     try {
       const response = await axios.post(`${API_URL}/api/records`, formData);
       setRecords((prev) => [...prev, response.data]);

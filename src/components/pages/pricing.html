@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pricing Plans - Record Book</title>
+<style>
+    body {
+        font-family: 'Poppins', sans-serif;
+        margin: 0;
+        background: #f9f9f9;
+        color: #333;
+    }
+
+    .pricing-section {
+        max-width: 1100px;
+        margin: auto;
+        padding: 50px 20px;
+        text-align: center;
+    }
+
+    .pricing-section h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .pricing-section p {
+        color: #555;
+        margin-bottom: 50px;
+    }
+
+    .pricing-cards {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 30px;
+        justify-content: center;
+    }
+
+    .card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        flex: 1 1 300px;
+        max-width: 320px;
+        padding: 30px;
+        transition: transform 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card:hover {
+        transform: translateY(-8px);
+    }
+
+    .plan-title {
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+        font-weight: bold;
+    }
+
+    .price {
+        font-size: 2rem;
+        margin-bottom: 15px;
+    }
+
+    .features {
+        list-style: none;
+        padding: 0;
+        margin-bottom: 20px;
+        text-align: left;
+    }
+
+    .features li {
+        padding: 8px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        background: #333;
+        color: white;
+        border-radius: 30px;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+
+    .btn:hover {
+        background: #555;
+    }
+
+    /* Bronze Theme */
+    .bronze {
+        border-top: 8px solid #cd7f32;
+    }
+    .bronze .plan-title {
+        color: #cd7f32;
+    }
+
+    /* Silver Theme */
+    .silver {
+        border-top: 8px solid #c0c0c0;
+    }
+    .silver .plan-title {
+        color: #c0c0c0;
+    }
+
+    /* Gold Theme */
+    .gold {
+        border-top: 8px solid #ffd700;
+    }
+    .gold .plan-title {
+        color: #ffd700;
+    }
+</style>
+</head>
+<body>
+
+<section class="pricing-section">
+    <h1>Our Pricing Plans</h1>
+    <p>Choose the plan that best suits your business needs.</p>
+
+    <div class="pricing-cards">
+        <!-- Bronze Plan -->
+        <div class="card bronze">
+            <div class="plan-title">Bronze</div>
+            <div class="price">₹199 / month</div>
+            <ul class="features">
+                <li>✔ 1 User Account</li>
+                <li>✔ 100 Records / Month</li>
+                <li>✔ Basic Support</li>
+            </ul>
+            <a href="#" class="btn">Get Started</a>
+        </div>
+
+        <!-- Silver Plan -->
+        <div class="card silver">
+            <div class="plan-title">Silver</div>
+            <div class="price">₹499 / month</div>
+            <ul class="features">
+                <li>✔ 5 User Accounts</li>
+                <li>✔ 1000 Records / Month</li>
+                <li>✔ Priority Support</li>
+                <li>✔ Data Backup</li>
+            </ul>
+            <a href="#" class="btn">Get Started</a>
+        </div>
+
+        <!-- Gold Plan -->
+        <div class="card gold">
+            <div class="plan-title">Gold</div>
+            <div class="price">₹999 / month</div>
+            <ul class="features">
+                <li>✔ Unlimited Users</li>
+                <li>✔ Unlimited Records</li>
+                <li>✔ 24/7 Premium Support</li>
+                <li>✔ Data Backup & Restore</li>
+                <li>✔ Advanced Reports</li>
+            </ul>
+            <a href="#" class="btn">Get Started</a>
+        </div>
+    </div>
+</section>
+
+</body>
+</html>

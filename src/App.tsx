@@ -1,4 +1,3 @@
-// src/App.tsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
@@ -22,6 +21,7 @@ import ChangePassword from './components/pages/changepassword';
 
 import Features from './components/Features';
 import AboutUs from './components/AboutUs';
+import Pricing from './components/Pricing'; // ✅ Updated Functional Pricing Page
 
 function App() {
   return (
@@ -30,7 +30,7 @@ function App() {
         <ScrollToHash />
 
         <Routes>
-          {/* Landing Page only contains Hero now */}
+          {/* Landing Page */}
           <Route
             path="/"
             element={
@@ -41,7 +41,7 @@ function App() {
             }
           />
 
-          {/* Separate Features Page */}
+          {/* Features Page */}
           <Route
             path="/features"
             element={
@@ -52,13 +52,24 @@ function App() {
             }
           />
 
-          {/* Separate About Page */}
+          {/* About Page */}
           <Route
             path="/about"
             element={
               <>
                 <Header />
                 <AboutUs />
+              </>
+            }
+          />
+
+          {/* ✅ Functional Pricing Page with Get Started Modal */}
+          <Route
+            path="/pricing"
+            element={
+              <>
+                <Header />
+                <Pricing />
               </>
             }
           />

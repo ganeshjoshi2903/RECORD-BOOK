@@ -3,28 +3,26 @@ import mongoose from 'mongoose';
 const digitalRecordSchema = new mongoose.Schema({
   type: {
     type: String,
-    enum: ['Income', 'Expense', 'Due'],
+    enum: ['Income', 'Expense', 'Due'], // record ka type
     required: true,
   },
   category: {
-    type: String,
+    type: String, // jaise Salary, Rent, Grocery
     required: true,
   },
   amount: {
     type: Number,
     required: true,
   },
-  customer: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Customer',
-  },
   date: {
     type: Date,
-    default: Date.now,
+    default: Date.now, // record create date
   },
 });
 
-
-const DigitalRecord = mongoose.models.DigitalRecord || mongoose.model('DigitalRecord', digitalRecordSchema);
+// Agar model already exist kare to usko reuse karo, nahi to naya banao
+const DigitalRecord =
+  mongoose.models.DigitalRecord ||
+  mongoose.model('DigitalRecord', digitalRecordSchema);
 
 export default DigitalRecord;
