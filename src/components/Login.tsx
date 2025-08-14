@@ -1,48 +1,52 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 const Login = () => {
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-const API_URL = import.meta.env.VITE_API_URL;
+  const API_URL = import.meta.env.VITE_API_URL;
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     try {
       const res = await fetch(`${API_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.message || 'Login failed');
+        setError(data.message || "Login failed");
         return;
       }
 
-      localStorage.setItem('token', data.token);
-      navigate('/dashboard');
+      localStorage.setItem("token", data.token);
+      navigate("/dashboard");
     } catch (err) {
-      setError('Something went wrong. Please try again.');
+      setError("Something went wrong. Please try again.");
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300">
       <div className="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-md">
-        <h2 className="text-3xl font-extrabold text-center text-blue-700 mb-6">Welcome Back</h2>
+        <h2 className="text-3xl font-extrabold text-center text-blue-700 mb-6">
+          Welcome Back
+        </h2>
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-600">Email</label>
+            <label className="block text-sm font-medium text-gray-600">
+              Email
+            </label>
             <input
               type="email"
               value={email}
@@ -54,10 +58,12 @@ const API_URL = import.meta.env.VITE_API_URL;
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-600">Password</label>
+            <label className="block text-sm font-medium text-gray-600">
+              Password
+            </label>
             <div className="relative">
               <input
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 value={password}
                 placeholder="Enter your password"
                 onChange={(e) => setPassword(e.target.value)}
@@ -87,14 +93,22 @@ const API_URL = import.meta.env.VITE_API_URL;
           </button>
         </form>
 
-        <p className="mt-5 text-center text-sm text-gray-500">
-          Don’t have an account?{' '}
+        <p className="mt-5 text-left text-sm text-gray-500 w-3/3">
+          Don’t have an account?{" "}
           <span
-            onClick={() => navigate('/signup')}
-            className="text-blue-600 hover:underline cursor-pointer"
+            onClick={() => navigate("/signup")}
+            className="mr-4 text-blue-600 hover:underline cursor-pointer"
           >
             Sign up
           </span>
+          {/* <p className="text-right text-sm text-gray-500"> */}
+          <span
+            onClick={() => navigate("/forgot")}
+            className="ml-10 text-right text-sm text-blue-600 hover:underline cursor-pointer"
+          >
+            Forgot Password?{" "}
+          </span>
+          {/* </p> */}
         </p>
       </div>
     </div>
