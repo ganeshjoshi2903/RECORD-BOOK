@@ -1,37 +1,47 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import axios from "axios";
 
-const Login = () => {
+const Login: React.FC = () => {
   const navigate = useNavigate();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+  // Backend API URL from .env
   const API_URL = import.meta.env.VITE_API_URL;
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
+    if (!email || !password) {
+      setError("Please enter email and password");
+      return;
+    }
+
     try {
-      const res = await fetch(`${API_URL}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      console.log("Sending login:", { email, password });
 
-      const data = await res.json();
+      const res = await axios.post(
+        `${API_URL}/api/auth/login`,
+        { email, password },
+        { headers: { "Content-Type": "application/json" } }
+      );
 
-      if (!res.ok) {
-        setError(data.message || "Login failed");
-        return;
+      console.log("Login Response:", res.data);
+
+      if (res.data?.token) {
+        localStorage.setItem("token", res.data.token);
+        navigate("/dashboard");
+      } else {
+        setError("Login failed. Please try again.");
       }
-
-      localStorage.setItem("token", data.token);
-      navigate("/dashboard");
-    } catch (err) {
-      setError("Something went wrong. Please try again.");
+    } catch (err: any) {
+      console.error("Login Error:", err.response?.data || err.message);
+      setError(err.response?.data?.message || "Invalid email or password");
     }
   };
 
@@ -44,9 +54,7 @@ const Login = () => {
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-600">
-              Email
-            </label>
+            <label className="block text-sm font-medium text-gray-600">Email</label>
             <input
               type="email"
               value={email}
@@ -58,9 +66,7 @@ const Login = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-600">
-              Password
-            </label>
+            <label className="block text-sm font-medium text-gray-600">Password</label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -93,22 +99,21 @@ const Login = () => {
           </button>
         </form>
 
-        <p className="mt-5 text-left text-sm text-gray-500 w-3/3">
+        <p className="mt-5 text-left text-sm text-gray-500 w-full">
           Don’t have an account?{" "}
           <span
             onClick={() => navigate("/signup")}
-            className="mr-4 text-blue-600 hover:underline cursor-pointer"
+            className="text-blue-600 hover:underline cursor-pointer"
           >
             Sign up
           </span>
-          {/* <p className="text-right text-sm text-gray-500"> */}
+          {" | "}
           <span
             onClick={() => navigate("/forgot")}
-            className="ml-10 text-right text-sm text-blue-600 hover:underline cursor-pointer"
+            className="text-blue-600 hover:underline cursor-pointer"
           >
-            Forgot Password?{" "}
+            Forgot Password?
           </span>
-          {/* </p> */}
         </p>
       </div>
     </div>
