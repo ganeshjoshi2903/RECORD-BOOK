@@ -1,9 +1,10 @@
 import express from "express";
-import { forgotPassword } from "../controllers/forgotPasswordController.js";
+import { sendResetLink } from "../controllers/forgotPasswordController.js";
+import { resetPassword } from "../controllers/resetPasswordController.js";
 
 const router = express.Router();
 
-// No auth middleware, because user might be logged out
-router.post("/forgot-password", forgotPassword);
+router.post("/forgot-password", sendResetLink);
+router.post("/reset-password/:token", resetPassword);
 
 export default router;

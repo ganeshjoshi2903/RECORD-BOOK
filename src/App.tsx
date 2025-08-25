@@ -17,11 +17,14 @@ import DueTracker from "./components/pages/DueTracker";
 import Profile from "./components/pages/Profile";
 import Notifications from "./components/pages/Notifications";
 import EditProfile from "./components/pages/Editprofile";
-import ChangePassword from "./components/pages/changepassword";
 
 import Features from "./components/Features";
 import AboutUs from "./components/AboutUs";
-import Pricing from "./components/Pricing"; // ✅ Updated Functional Pricing Page
+import Pricing from "./components/Pricing";
+
+// 🔹 New pages for Forgot + Reset Password
+import ForgotPassword from "./components/pages/forgetpassword";
+import ResetPassword from "./components/pages/ResetPassword";
 
 function App() {
   return (
@@ -63,7 +66,7 @@ function App() {
             }
           />
 
-          {/* ✅ Functional Pricing Page with Get Started Modal */}
+          {/* Pricing Page */}
           <Route
             path="/pricing"
             element={
@@ -94,12 +97,22 @@ function App() {
             }
           />
 
+          {/* ✅ Forgot + Reset Password */}
           <Route
             path="/forgot"
             element={
               <>
                 <Header />
-                <ChangePassword />
+                <ForgotPassword />
+              </>
+            }
+          />
+          <Route
+            path="/reset-password/:token"
+            element={
+              <>
+                <Header />
+                <ResetPassword />
               </>
             }
           />
@@ -113,7 +126,6 @@ function App() {
             <Route path="notifications" element={<Notifications />} />
             <Route path="profile" element={<Profile />} />
             <Route path="profile/edit" element={<EditProfile />} />
-            {/* <Route path="forgot" element={<ChangePassword />} /> */}
           </Route>
         </Routes>
       </div>

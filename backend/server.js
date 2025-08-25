@@ -9,7 +9,7 @@ import recordRoutes from "./routes/digitalRecordRoutes.js";
 import customerRoutes from "./routes/customerRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import profileRoutes from "./routes/profileroutes.js";
-import forgotPasswordRoutes from "./routes/forgotPasswordRoutes.js";
+// ✅ Remove this line: import forgotPasswordRoutes from "./routes/forgotPasswordRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -26,12 +26,12 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Routes
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", authRoutes); // ✅ All authentication routes, including password reset, are handled here
 app.use("/api/records", recordRoutes);
 app.use("/api/customers", customerRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/profile", profileRoutes);
-app.use("/api/auth", forgotPasswordRoutes);
+// ✅ Remove this line: app.use("/api/auth", forgotPasswordRoutes);
 
 // ✅ Default root route (must be after all routes)
 app.get("/", (req, res) => {
