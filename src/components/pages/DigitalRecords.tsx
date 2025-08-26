@@ -7,6 +7,7 @@ interface Record {
   category: string;
   amount: number;
   date: string;
+  dueDate?: string;
 }
 
 const DigitalRecords = () => {
@@ -16,6 +17,7 @@ const DigitalRecords = () => {
     category: "",
     amount: 0,
     date: "",
+    dueDate: "",
   });
   const [error, setError] = useState("");
   const API_URL = import.meta.env.VITE_API_URL;
@@ -40,14 +42,22 @@ const DigitalRecords = () => {
   };
 
   const handleAddRecord = async () => {
-    if (!formData.type || !formData.category || !formData.amount || !formData.date) {
+    if (
+      !formData.type ||
+      !formData.category ||
+      !formData.amount ||
+      !formData.date ||
+      (formData.type === "Due" && !formData.dueDate)
+    ) {
       setError("All fields are required");
       return;
     }
 
-    // ✅ Duplicate category check (case-insensitive)
+    // Duplicate category check (case-insensitive)
     const categoryExists = records.some(
-      (rec) => rec.category.trim().toLowerCase() === formData.category.trim().toLowerCase()
+      (rec) =>
+        rec.category.trim().toLowerCase() ===
+        formData.category.trim().toLowerCase()
     );
 
     if (categoryExists) {
@@ -58,7 +68,7 @@ const DigitalRecords = () => {
     try {
       const response = await axios.post(`${API_URL}/api/records`, formData);
       setRecords((prev) => [...prev, response.data]);
-      setFormData({ type: "Income", category: "", amount: 0, date: "" });
+      setFormData({ type: "Income", category: "", amount: 0, date: "", dueDate: "" });
       setError("");
     } catch (err) {
       console.error("Add Record Error", err);
@@ -125,6 +135,18 @@ const DigitalRecords = () => {
           onChange={handleChange}
           className="border rounded px-3 py-2 shadow-sm"
         />
+
+        {/* Due date input only if type is Due */}
+        {formData.type === "Due" && (
+          <input
+            type="date"
+            name="dueDate"
+            value={formData.dueDate || ""}
+            onChange={handleChange}
+            className="border rounded px-3 py-2 shadow-sm"
+          />
+        )}
+
         <button
           onClick={handleAddRecord}
           className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 shadow"
@@ -144,6 +166,7 @@ const DigitalRecords = () => {
               <th className="border px-4 py-2 text-left">Category</th>
               <th className="border px-4 py-2 text-left">Amount</th>
               <th className="border px-4 py-2 text-left">Date</th>
+              <th className="border px-4 py-2 text-left">Due Date</th>
               <th className="border px-4 py-2 text-left">Actions</th>
             </tr>
           </thead>
@@ -157,6 +180,9 @@ const DigitalRecords = () => {
                   {new Date(record.date).toLocaleDateString()}
                 </td>
                 <td className="border px-4 py-2">
+                  {record.dueDate ? new Date(record.dueDate).toLocaleDateString() : "—"}
+                </td>
+                <td className="border px-4 py-2">
                   <button
                     onClick={() => handleDelete(record._id)}
                     className="text-red-600 hover:underline text-sm"
@@ -168,7 +194,7 @@ const DigitalRecords = () => {
             ))}
             {records.length === 0 && (
               <tr>
-                <td colSpan={5} className="text-center text-gray-500 py-4">
+                <td colSpan={6} className="text-center text-gray-500 py-4">
                   No records found.
                 </td>
               </tr>

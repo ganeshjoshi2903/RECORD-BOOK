@@ -1,4 +1,5 @@
 import DigitalRecord from '../models/DigitalRecord.js';
+import Notification from '../models/notification.js';
 
 /**
  * ✅ Create a new record
@@ -17,6 +18,30 @@ export const createRecord = async (req, res) => {
     });
 
     await newRecord.save();
+
+    // 🔔 Immediate notification
+    await Notification.create({
+      message:
+        type === "Due"
+          ? `New Due of ₹${amount} added (Due Date: ${dueDate ? new Date(dueDate).toLocaleDateString() : "Not set"})`
+          : `${type} of ₹${amount} added in ${category}`,
+      type: type.toLowerCase(),
+    });
+
+    // ⏰ Reminder notification (1 day before due date)
+    if (type === "Due" && dueDate) {
+      const due = new Date(dueDate);
+      const reminderDate = new Date(due);
+      reminderDate.setDate(reminderDate.getDate() - 1);
+
+      if (reminderDate > new Date()) {
+        await Notification.create({
+          message: `Reminder: Due of ₹${amount} is tomorrow (${due.toLocaleDateString()})`,
+          type: "reminder",
+        });
+      }
+    }
+
     res.status(201).json(newRecord);
   } catch (err) {
     console.error('❌ Failed to create record:', err.message);
@@ -38,7 +63,7 @@ export const getRecords = async (req, res) => {
 };
 
 /**
- * ✅ Get only due records (without customer populate)
+ * ✅ Get only due records (status = due)
  */
 export const getDueRecords = async (req, res) => {
   try {
@@ -47,9 +72,7 @@ export const getDueRecords = async (req, res) => {
       type: 'Due',
       status: 'due',
       dueDate: { $lte: today },
-    })
-      .sort({ dueDate: 1 })
-      .lean(); // ✅ lean() for performance
+    }).sort({ dueDate: 1 }).lean();
 
     res.json(dueRecords);
   } catch (err) {
@@ -59,7 +82,7 @@ export const getDueRecords = async (req, res) => {
 };
 
 /**
- * ✅ Delete a record by ID
+ * ✅ Delete record
  */
 export const deleteRecord = async (req, res) => {
   try {
@@ -70,6 +93,9 @@ export const deleteRecord = async (req, res) => {
       return res.status(404).json({ message: 'Record not found' });
     }
 
+    // Delete related notifications (optional)
+    await Notification.deleteMany({ message: new RegExp(deleted._id, 'i') });
+
     res.json({ message: 'Record deleted successfully', id });
   } catch (err) {
     console.error('❌ Failed to delete record:', err.message);
@@ -78,7 +104,7 @@ export const deleteRecord = async (req, res) => {
 };
 
 /**
- * ✅ Update a record by ID
+ * ✅ Update record
  */
 export const updateRecord = async (req, res) => {
   try {
@@ -87,6 +113,27 @@ export const updateRecord = async (req, res) => {
 
     if (!updated) {
       return res.status(404).json({ message: 'Record not found' });
+    }
+
+    // Update reminder notification if dueDate changed
+    if (updated.type === 'Due' && updated.dueDate) {
+      // Remove previous reminders for this record
+      await Notification.deleteMany({
+        message: new RegExp(`Reminder: Due of ₹${updated.amount}`, 'i'),
+        type: 'reminder',
+      });
+
+      // Create new reminder 1 day before
+      const due = new Date(updated.dueDate);
+      const reminderDate = new Date(due);
+      reminderDate.setDate(reminderDate.getDate() - 1);
+
+      if (reminderDate > new Date()) {
+        await Notification.create({
+          message: `Reminder: Due of ₹${updated.amount} is tomorrow (${due.toLocaleDateString()})`,
+          type: 'reminder',
+        });
+      }
     }
 
     res.json(updated);

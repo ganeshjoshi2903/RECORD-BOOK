@@ -1,4 +1,5 @@
 import Customer from '../models/Customer.js';
+import Notification from '../models/notification.js';
 
 // GET all customers
 export const getAllCustomers = async (req, res) => {
@@ -17,6 +18,13 @@ export const addCustomer = async (req, res) => {
     const newCustomer = new Customer(req.body);
     await newCustomer.save();
     console.log("💾 Saved customer:", newCustomer);
+
+    // 🔔 Add notification
+    await Notification.create({
+      message: `New customer added: ${newCustomer.name}`,
+      type: "customer"
+    });
+
     res.status(201).json(newCustomer);
   } catch (error) {
     res.status(500).json({ message: 'Error adding customer', error });
