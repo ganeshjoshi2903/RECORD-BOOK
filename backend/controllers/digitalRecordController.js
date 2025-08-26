@@ -21,6 +21,7 @@ export const createRecord = async (req, res) => {
 
     // 🔔 Immediate notification
     await Notification.create({
+      recordId: newRecord._id,   // ✅ linking record to notification
       message:
         type === "Due"
           ? `New Due of ₹${amount} added (Due Date: ${dueDate ? new Date(dueDate).toLocaleDateString() : "Not set"})`
@@ -36,6 +37,7 @@ export const createRecord = async (req, res) => {
 
       if (reminderDate > new Date()) {
         await Notification.create({
+          recordId: newRecord._id,   // ✅ linking reminder also
           message: `Reminder: Due of ₹${amount} is tomorrow (${due.toLocaleDateString()})`,
           type: "reminder",
         });
@@ -93,10 +95,10 @@ export const deleteRecord = async (req, res) => {
       return res.status(404).json({ message: 'Record not found' });
     }
 
-    // Delete related notifications (optional)
-    await Notification.deleteMany({ message: new RegExp(deleted._id, 'i') });
+    // ✅ Delete all notifications linked to this record
+    await Notification.deleteMany({ recordId: id });
 
-    res.json({ message: 'Record deleted successfully', id });
+    res.json({ message: 'Record & related notifications deleted', id });
   } catch (err) {
     console.error('❌ Failed to delete record:', err.message);
     res.status(500).json({ message: 'Failed to delete record' });
@@ -115,21 +117,18 @@ export const updateRecord = async (req, res) => {
       return res.status(404).json({ message: 'Record not found' });
     }
 
-    // Update reminder notification if dueDate changed
-    if (updated.type === 'Due' && updated.dueDate) {
-      // Remove previous reminders for this record
-      await Notification.deleteMany({
-        message: new RegExp(`Reminder: Due of ₹${updated.amount}`, 'i'),
-        type: 'reminder',
-      });
+    // ✅ Remove old reminders for this record
+    await Notification.deleteMany({ recordId: id, type: 'reminder' });
 
-      // Create new reminder 1 day before
+    // ✅ Add updated reminder
+    if (updated.type === 'Due' && updated.dueDate) {
       const due = new Date(updated.dueDate);
       const reminderDate = new Date(due);
       reminderDate.setDate(reminderDate.getDate() - 1);
 
       if (reminderDate > new Date()) {
         await Notification.create({
+          recordId: updated._id,
           message: `Reminder: Due of ₹${updated.amount} is tomorrow (${due.toLocaleDateString()})`,
           type: 'reminder',
         });
