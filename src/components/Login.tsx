@@ -10,7 +10,6 @@ const Login: React.FC = () => {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  // Backend API URL from .env
   const API_URL = import.meta.env.VITE_API_URL;
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -23,15 +22,11 @@ const Login: React.FC = () => {
     }
 
     try {
-      console.log("Sending login:", { email, password });
-
       const res = await axios.post(
         `${API_URL}/api/auth/login`,
         { email, password },
         { headers: { "Content-Type": "application/json" } }
       );
-
-      console.log("Login Response:", res.data);
 
       if (res.data?.token) {
         localStorage.setItem("token", res.data.token);
@@ -40,19 +35,24 @@ const Login: React.FC = () => {
         setError("Login failed. Please try again.");
       }
     } catch (err: any) {
-      console.error("Login Error:", err.response?.data || err.message);
       setError(err.response?.data?.message || "Invalid email or password");
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300">
-      <div className="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-md">
-        <h2 className="text-3xl font-extrabold text-center text-blue-700 mb-6">
-          Welcome Back
-        </h2>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-cyan-100 to-blue-200">
+      <div className="bg-white/90 backdrop-blur-md p-10 rounded-3xl shadow-2xl w-full max-w-md border border-gray-100">
+        
+        {/* Title */}
+        <div className="flex flex-col items-center mb-8">
+          <h2 className="text-3xl font-extrabold text-gray-800 mt-4 tracking-tight">
+            Welcome Back
+          </h2>
+          <p className="text-gray-500 text-sm mt-2">Login to continue to your account</p>
+        </div>
 
-        <form onSubmit={handleLogin} className="space-y-5">
+        {/* Form */}
+        <form onSubmit={handleLogin} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-600">Email</label>
             <input
@@ -60,7 +60,7 @@ const Login: React.FC = () => {
               value={email}
               placeholder="Enter your email"
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400 focus:outline-none"
+              className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:outline-none transition"
               required
             />
           </div>
@@ -73,11 +73,11 @@ const Login: React.FC = () => {
                 value={password}
                 placeholder="Enter your password"
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400 focus:outline-none pr-10"
+                className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:outline-none transition pr-12"
                 required
               />
               <div
-                className="absolute inset-y-0 right-3 flex items-center cursor-pointer"
+                className="absolute inset-y-0 right-4 flex items-center cursor-pointer"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? (
@@ -89,32 +89,35 @@ const Login: React.FC = () => {
             </div>
           </div>
 
-          {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+          {error && (
+            <p className="text-sm text-red-500 text-center font-medium">{error}</p>
+          )}
 
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition"
+            className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-90 text-white font-semibold py-3 px-4 rounded-xl shadow-lg transition"
           >
             Login
           </button>
         </form>
 
-        <p className="mt-5 text-left text-sm text-gray-500 w-full">
+        {/* Links */}
+        <div className="mt-6 text-center text-sm text-gray-500">
           Don’t have an account?{" "}
           <span
             onClick={() => navigate("/signup")}
-            className="text-blue-600 hover:underline cursor-pointer"
+            className="text-blue-600 font-medium hover:underline cursor-pointer"
           >
             Sign up
           </span>
-          {" | "}
+          <br />
           <span
             onClick={() => navigate("/forgot")}
-            className="text-blue-600 hover:underline cursor-pointer"
+            className="text-cyan-600 font-medium hover:underline cursor-pointer"
           >
             Forgot Password?
           </span>
-        </p>
+        </div>
       </div>
     </div>
   );

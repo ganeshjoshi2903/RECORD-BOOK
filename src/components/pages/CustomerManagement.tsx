@@ -9,7 +9,6 @@ type Customer = {
   _id: string;
   name: string;
   phone: string;
-  photo?: string;
   balance: number;
   createdAt?: string;
   updatedAt?: string;
@@ -20,7 +19,6 @@ const CustomerManagement: React.FC = () => {
   const [newCustomer, setNewCustomer] = useState({
     name: "",
     phone: "",
-    photo: "",
     balance: "",
   });
   const [error, setError] = useState("");
@@ -48,19 +46,16 @@ const CustomerManagement: React.FC = () => {
   const handleAddCustomer = async () => {
     setError("");
 
-    // Validate required fields
     if (!newCustomer.name || !newCustomer.phone || !newCustomer.balance) {
       setError("Please fill in all required fields.");
       return;
     }
 
-    // Safe duplicate check (avoids .trim() error)
     const duplicate = customers.find((c) => {
       const existingName = (c.name || "").trim().toLowerCase();
       const existingPhone = (c.phone || "").trim();
       const newName = (newCustomer.name || "").trim().toLowerCase();
       const newPhone = (newCustomer.phone || "").trim();
-
       return existingName === newName || existingPhone === newPhone;
     });
 
@@ -80,13 +75,12 @@ const CustomerManagement: React.FC = () => {
     const payload = {
       name: newCustomer.name.trim(),
       phone: newCustomer.phone.trim(),
-      photo: newCustomer.photo.trim(),
       balance: parsedBalance,
     };
 
     try {
       await axios.post(`${API_URL}/api/customers`, payload);
-      setNewCustomer({ name: "", phone: "", photo: "", balance: "" });
+      setNewCustomer({ name: "", phone: "", balance: "" });
       fetchCustomers();
     } catch (err) {
       console.error("Error adding customer:", err);
@@ -95,36 +89,61 @@ const CustomerManagement: React.FC = () => {
   };
 
   const handleDeleteCustomer = async (id: string) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this customer?"
-    );
-    if (!confirmDelete) return;
+    if (!window.confirm("Are you sure you want to delete this customer?")) return;
 
     try {
       await axios.delete(`${API_URL}/api/customers/${id}`);
       fetchCustomers();
     } catch (err: any) {
-      console.error(
-        "Error deleting customer:",
-        err.response?.data || err.message
-      );
+      console.error("Error deleting customer:", err.response?.data || err.message);
       alert("Delete failed: " + (err.response?.data?.message || err.message));
     }
   };
 
+  // ✅ Single customer PDF with Rs.
   const exportStatement = (cust: Customer) => {
     const doc = new jsPDF();
-    doc.text(`${cust.name} - Statement`, 10, 10);
-
-    const balance =
-      typeof cust.balance === "number" ? cust.balance : 0;
+    doc.setFontSize(16);
+    doc.text(`${cust.name} - Statement`, 14, 15);
 
     autoTable(doc, {
+      startY: 25,
       head: [["Name", "Phone", "Balance"]],
-      body: [[cust.name, cust.phone, `₹${balance.toFixed(2)}`]],
+      body: [
+        [
+          cust.name,
+          cust.phone,
+          `Rs. ${cust.balance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`,
+        ],
+      ],
+      headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+      styles: { halign: "center" },
     });
 
     doc.save(`${cust.name}_statement.pdf`);
+  };
+
+  // ✅ Multi-customer PDF with Rs.
+  const exportAllStatements = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text("All Customers - Statement", 14, 15);
+
+    const rows = customers.map((cust) => [
+      cust.name,
+      cust.phone,
+      `Rs. ${cust.balance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`,
+    ]);
+
+    autoTable(doc, {
+      startY: 25,
+      head: [["Name", "Phone", "Balance"]],
+      body: rows,
+      headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+      styles: { halign: "center" },
+    });
+
+    doc.save("All_Customers_Statements.pdf");
   };
 
   const filtered = customers.filter((c) =>
@@ -133,20 +152,21 @@ const CustomerManagement: React.FC = () => {
 
   return (
     <div className="p-6 space-y-6">
-      <h2 className="text-2xl font-bold text-blue-600 flex items-center gap-2">
-        <Users2 className="w-6 h-6" /> Customer Management
+      {/* Title */}
+      <h2 className="text-3xl font-bold text-blue-700 flex items-center gap-2">
+        <Users2 className="w-7 h-7" /> Customer Management
       </h2>
 
-      {/* Add New Customer */}
-      <div className="bg-white p-4 rounded shadow space-y-4">
-        <h3 className="text-lg font-semibold flex gap-2 items-center">
+      {/* Add Customer */}
+      <div className="bg-white p-6 rounded-2xl shadow-md space-y-4 border border-gray-200">
+        <h3 className="text-lg font-semibold flex gap-2 items-center text-gray-700">
           <UserPlus className="w-5 h-5" /> Add New Customer
         </h3>
-        <div className="grid md:grid-cols-4 gap-4">
+        <div className="grid md:grid-cols-3 gap-4">
           <input
             type="text"
             placeholder="Full Name"
-            className="border px-3 py-2 rounded"
+            className="border px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none"
             value={newCustomer.name}
             onChange={(e) =>
               setNewCustomer({ ...newCustomer, name: e.target.value })
@@ -155,25 +175,16 @@ const CustomerManagement: React.FC = () => {
           <input
             type="tel"
             placeholder="Phone Number"
-            className="border px-3 py-2 rounded"
+            className="border px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none"
             value={newCustomer.phone}
             onChange={(e) =>
               setNewCustomer({ ...newCustomer, phone: e.target.value })
             }
           />
           <input
-            type="text"
-            placeholder="Photo URL (Optional)"
-            className="border px-3 py-2 rounded"
-            value={newCustomer.photo}
-            onChange={(e) =>
-              setNewCustomer({ ...newCustomer, photo: e.target.value })
-            }
-          />
-          <input
             type="number"
             placeholder="Initial Balance"
-            className="border px-3 py-2 rounded"
+            className="border px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none"
             value={newCustomer.balance}
             onChange={(e) =>
               setNewCustomer({ ...newCustomer, balance: e.target.value })
@@ -181,22 +192,32 @@ const CustomerManagement: React.FC = () => {
           />
         </div>
         <button
-          className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded"
+          className="bg-blue-600 hover:bg-blue-700 transition text-white px-5 py-2 rounded-lg shadow"
           onClick={handleAddCustomer}
         >
           Add Customer
         </button>
-        {error && <p className="text-red-500">{error}</p>}
+        {error && <p className="text-red-500 text-sm">{error}</p>}
       </div>
 
       {/* Search */}
       <input
         type="text"
-        placeholder="Search Customer"
-        className="border px-4 py-2 rounded w-full"
+        placeholder="🔍 Search Customer"
+        className="border px-4 py-2 rounded-lg w-full shadow-sm focus:ring-2 focus:ring-blue-400 outline-none"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
+
+      {/* Multi Export Button */}
+      {customers.length > 0 && (
+        <button
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow"
+          onClick={exportAllStatements}
+        >
+          <FaDownload className="inline mr-2" /> Export All Customers PDF
+        </button>
+      )}
 
       {/* Customer List */}
       <div className="grid gap-4">
@@ -206,31 +227,33 @@ const CustomerManagement: React.FC = () => {
           filtered.map((cust) => (
             <div
               key={cust._id}
-              className="border rounded shadow p-4 flex justify-between items-center"
+              className="border rounded-xl shadow-md p-5 flex justify-between items-center hover:shadow-lg transition bg-white"
             >
-              <div className="flex gap-4 items-center">
-                {cust.photo && (
-                  <img
-                    src={cust.photo}
-                    alt={cust.name}
-                    className="w-12 h-12 rounded-full object-cover border"
-                  />
-                )}
-                <div className="flex flex-col">
-                  <h4 className="font-semibold">{cust.name}</h4>
-                  <p className="text-sm text-gray-600">📞 {cust.phone}</p>
-                  <p className="text-sm">💰 Balance: ₹{cust.balance}</p>
-                </div>
+              <div>
+                <h4 className="font-semibold text-lg">{cust.name}</h4>
+                <p className="text-sm text-gray-600">📞 {cust.phone}</p>
+                <p
+                  className={`text-sm font-medium ${
+                    cust.balance > 0
+                      ? "text-green-600"
+                      : cust.balance < 0
+                      ? "text-red-600"
+                      : "text-gray-700"
+                  }`}
+                >
+                  💰 Balance: ₹
+                  {cust.balance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <button
-                  className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded"
+                  className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-lg flex items-center gap-1"
                   onClick={() => exportStatement(cust)}
                 >
-                  <FaDownload className="inline mr-1" /> PDF
+                  <FaDownload className="inline" /> PDF
                 </button>
                 <button
-                  className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded flex items-center gap-1"
+                  className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg flex items-center gap-1"
                   onClick={() => handleDeleteCustomer(cust._id)}
                 >
                   <Trash2 size={16} /> Delete

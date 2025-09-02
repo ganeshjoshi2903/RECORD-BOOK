@@ -1,18 +1,33 @@
 import DigitalRecord from '../models/DigitalRecord.js';
 
-// 📊 Dashboard total stats
+// 📊 Dashboard total stats (aggregation fix)
 export const getDashboardStats = async (req, res) => {
   try {
-    const income = await DigitalRecord.find({ type: 'Income' });
-    const expense = await DigitalRecord.find({ type: 'Expense' });
-    const due = await DigitalRecord.find({ type: 'Due' });
+    // Income total
+    const incomeAgg = await DigitalRecord.aggregate([
+      { $match: { type: 'Income' } },
+      { $group: { _id: null, total: { $sum: { $toDouble: '$amount' } } } }
+    ]);
+
+    // Expense total
+    const expenseAgg = await DigitalRecord.aggregate([
+      { $match: { type: 'Expense' } },
+      { $group: { _id: null, total: { $sum: { $toDouble: '$amount' } } } }
+    ]);
+
+    // Due total
+    const dueAgg = await DigitalRecord.aggregate([
+      { $match: { type: 'Due' } },
+      { $group: { _id: null, total: { $sum: { $toDouble: '$amount' } } } }
+    ]);
 
     res.json({
-      totalIncome: income.reduce((acc, curr) => acc + curr.amount, 0),
-      totalExpense: expense.reduce((acc, curr) => acc + curr.amount, 0),
-      totalDue: due.reduce((acc, curr) => acc + curr.amount, 0),
+      totalIncome: incomeAgg[0]?.total || 0,
+      totalExpense: expenseAgg[0]?.total || 0,
+      totalDue: dueAgg[0]?.total || 0,
     });
   } catch (err) {
+    console.error('Dashboard stats error:', err.message);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -20,7 +35,9 @@ export const getDashboardStats = async (req, res) => {
 // 💰 Income records
 export const getIncomeRecords = async (req, res) => {
   try {
-    const records = await DigitalRecord.find({ type: 'Income' }).sort({ date: -1 });
+    const records = await DigitalRecord.find({ type: 'Income' })
+      .sort({ date: -1 })
+      .lean(); // lean() returns plain JS objects
     res.json(records);
   } catch (err) {
     res.status(500).json({ message: 'Failed to fetch income records' });
@@ -30,7 +47,9 @@ export const getIncomeRecords = async (req, res) => {
 // 💸 Expense records
 export const getExpenseRecords = async (req, res) => {
   try {
-    const records = await DigitalRecord.find({ type: 'Expense' }).sort({ date: -1 });
+    const records = await DigitalRecord.find({ type: 'Expense' })
+      .sort({ date: -1 })
+      .lean();
     res.json(records);
   } catch (err) {
     res.status(500).json({ message: 'Failed to fetch expense records' });
@@ -40,12 +59,13 @@ export const getExpenseRecords = async (req, res) => {
 // 📅 Due records (without customer)
 export const getDueRecords = async (req, res) => {
   try {
-    const dueRecords = await DigitalRecord.find({ type: 'Due' }).sort({ date: 1 });
+    const dueRecords = await DigitalRecord.find({ type: 'Due' })
+      .sort({ date: 1 })
+      .lean();
 
-    // Directly send due records without customer info
     const enriched = dueRecords.map(r => ({
       _id: r._id,
-      amount: r.amount || 0,
+      amount: Number(r.amount) || 0, // ensure number
       dueDate: r.date || 'N/A',
     }));
 

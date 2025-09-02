@@ -1,10 +1,26 @@
-    import express from 'express';
-    import { createRecord, getRecords, deleteRecord } from '../controllers/digitalRecordController.js';
+import express from "express";
+import {
+  createRecord,
+  getRecords,
+  deleteRecord,
+  updateRecord,
+  getDueRecords,
+  exportRecordsPDF,
+  getDailySummary,   // ✅ added
+} from "../controllers/digitalRecordController.js";
 
-    const router = express.Router();
+const router = express.Router();
 
-    router.post('/', createRecord);
-    router.get('/', getRecords);
-    router.delete('/:id', deleteRecord); // ✅ DELETE route
+router.post("/", createRecord);
+router.get("/", getRecords);
+router.get("/due", getDueRecords);
+router.put("/:id", updateRecord);
+router.delete("/:id", deleteRecord);
 
-    export default router;
+// ✅ Export PDF Route
+router.get("/export/pdf", exportRecordsPDF);
+
+// ✅ Daily Summary Route
+router.get("/summary/daily", getDailySummary);
+
+export default router;

@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -16,38 +17,58 @@ const Hero = () => {
         className="absolute inset-0 z-0"
         style={{
           backgroundImage:
-            'linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px)',
-          backgroundSize: '20px 20px',
+            'linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px)',
+          backgroundSize: '25px 25px',
         }}
       ></div>
 
       {/* Decorative Blobs */}
-      <div className="absolute -top-32 -right-32 w-96 h-96 bg-gradient-to-br from-teal-300 to-blue-400 rounded-full blur-[150px] opacity-30 z-0 animate-pulse"></div>
-      <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-gradient-to-br from-indigo-300 to-purple-400 rounded-full blur-[150px] opacity-30 z-0 animate-pulse"></div>
+      <motion.div
+        animate={{ rotate: [0, 360] }}
+        transition={{ repeat: Infinity, duration: 120, ease: 'linear' }}
+        className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-teal-300 to-blue-400 rounded-full blur-[200px] opacity-30 z-0"
+      ></motion.div>
+      <motion.div
+        animate={{ y: [0, 20, 0] }}
+        transition={{ repeat: Infinity, duration: 8, ease: 'easeInOut' }}
+        className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-br from-indigo-300 to-purple-400 rounded-full blur-[200px] opacity-30 z-0"
+      ></motion.div>
 
       {/* Content */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-20 z-10">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-24 z-10">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left Content */}
-          <div className="max-w-xl">
-            <h1 className="text-5xl md:text-6xl font-extrabold leading-tight tracking-tight mb-6 text-gray-900">
-              Digital
-              <br />
+          <div className="max-w-xl space-y-6">
+            <motion.h1
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              className="text-5xl md:text-6xl font-extrabold tracking-tight text-gray-900 leading-tight"
+            >
+              Digital <br />
               <span className="bg-gradient-to-r from-teal-500 to-blue-600 bg-clip-text text-transparent">
                 Record Book
               </span>
-            </h1>
-            <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-              Keep your business organized with smart digital records.
-              Manage customers, track transactions, and grow with ease.
-            </p>
-            <button
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.8 }}
+              className="text-lg text-gray-600 leading-relaxed"
+            >
+              Keep your business organized with smart digital records. Manage
+              customers, track transactions, and grow your business effortlessly.
+            </motion.p>
+            <motion.button
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
               onClick={handleGetStarted}
-              className="group inline-flex items-center space-x-2 bg-gradient-to-r from-teal-500 to-blue-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:from-teal-600 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-2xl hover:scale-105"
+              className="group inline-flex items-center space-x-3 bg-gradient-to-r from-teal-500 to-blue-600 text-white px-10 py-4 rounded-2xl font-semibold text-lg shadow-lg hover:shadow-2xl hover:scale-105 transition-transform duration-300"
             >
               <span>Get Started</span>
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
-            </button>
+            </motion.button>
           </div>
 
           {/* Right Feature Cards */}
@@ -61,7 +82,7 @@ const Hero = () => {
             <FeatureCard
               icon="👥"
               title="Customer Management"
-              description="Track customers and their payment history."
+              description="Track customers and their payment history efficiently."
               gradient="from-blue-500 to-blue-600"
             />
             <FeatureCard
@@ -96,16 +117,18 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
   description,
   gradient,
 }) => (
-  <div className="group bg-white/90 backdrop-blur-sm border border-gray-100 rounded-2xl p-6 hover:shadow-2xl transition-all duration-300 hover:scale-105 hover:bg-white">
+  <motion.div
+    whileHover={{ scale: 1.05, y: -5 }}
+    className="group bg-white/90 backdrop-blur-sm border border-gray-100 rounded-2xl p-6 transition-all duration-300 hover:shadow-2xl"
+  >
     <div
-      className={`w-12 h-12 bg-gradient-to-br ${gradient} text-white text-xl rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200 shadow-md`}
+      className={`w-14 h-14 bg-gradient-to-br ${gradient} text-white text-2xl rounded-xl flex items-center justify-center mb-4 shadow-md`}
     >
       <span>{icon}</span>
     </div>
-    <h3 className="text-lg font-semibold text-gray-900 mb-1">{title}</h3>
+    <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
     <p className="text-sm text-gray-600">{description}</p>
-  </div>
+  </motion.div>
 );
-
 
 export default Hero;

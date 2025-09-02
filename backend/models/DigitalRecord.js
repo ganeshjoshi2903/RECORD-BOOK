@@ -1,13 +1,13 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const digitalRecordSchema = new mongoose.Schema({
   type: {
     type: String,
-    enum: ['Income', 'Expense', 'Due'], // record type
+    enum: ["Income", "Expense", "Due"],
     required: true,
   },
   category: {
-    type: String, // e.g., Salary, Rent, Grocery
+    type: String,
     required: true,
   },
   amount: {
@@ -16,22 +16,21 @@ const digitalRecordSchema = new mongoose.Schema({
   },
   date: {
     type: Date,
-    default: Date.now, // record creation date
+    default: Date.now,
   },
   dueDate: {
-    type: Date, // only for 'Due' type
+    type: Date,
     default: null,
   },
   status: {
     type: String,
-    enum: ['paid', 'due'],
-    default: 'paid',
+    enum: ["paid", "due"],
+    default: "paid",
   },
 });
 
-// If model already exists, reuse it, else create a new one
 const DigitalRecord =
   mongoose.models.DigitalRecord ||
-  mongoose.model('DigitalRecord', digitalRecordSchema);
+  mongoose.model("DigitalRecord", digitalRecordSchema);
 
 export default DigitalRecord;

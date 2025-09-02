@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
-const SignUp = () => {
+const SignUp: React.FC = () => {
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_API_URL;
 
@@ -19,9 +19,31 @@ const SignUp = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // Password validation function
+  const isValidPassword = (password: string) => {
+    const minLength = 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    if (password.length < minLength) return 'Password must be at least 8 characters';
+    if (!hasUpperCase) return 'Password must contain at least one uppercase letter';
+    if (!hasLowerCase) return 'Password must contain at least one lowercase letter';
+    if (!hasNumber) return 'Password must contain at least one digit';
+    if (!hasSpecialChar) return 'Password must contain at least one special character';
+    return '';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    const passwordError = isValidPassword(formData.password);
+    if (passwordError) {
+      setError(passwordError);
+      return;
+    }
 
     try {
       const res = await fetch(`${API_URL}/api/auth/signup`, {
@@ -37,7 +59,7 @@ const SignUp = () => {
         return;
       }
 
-      // ✅ Redirect to dashboard instead of login
+      // ✅ Redirect to dashboard on success
       navigate('/dashboard');
     } catch (err) {
       setError('Something went wrong. Try again.');

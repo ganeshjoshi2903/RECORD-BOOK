@@ -14,6 +14,7 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
+import { motion } from "framer-motion";
 
 // Interfaces
 interface Transaction {
@@ -97,60 +98,72 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="p-6 space-y-10 bg-gradient-to-b from-gray-100 to-white min-h-screen">
+    <div className="p-6 space-y-10 bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           {
             title: "Total Income",
             amount: totalIncome,
-            icon: <ArrowUpCircle className="text-green-600 w-5 h-5" />,
-            bg: "bg-green-50 text-green-800",
+            icon: <ArrowUpCircle className="text-white w-7 h-7" />,
+            bg: "from-green-300 to-green-500",
           },
           {
             title: "Total Expense",
             amount: totalExpense,
-            icon: <ArrowDownCircle className="text-red-600 w-5 h-5" />,
-            bg: "bg-red-50 text-red-800",
+            icon: <ArrowDownCircle className="text-white w-7 h-7" />,
+            bg: "from-red-300 to-red-500",
           },
           {
             title: "Total Due",
             amount: totalDue,
-            icon: <IndianRupee className="text-yellow-600 w-5 h-5" />,
-            bg: "bg-yellow-50 text-yellow-800",
+            icon: <IndianRupee className="text-white w-7 h-7" />,
+            bg: "from-yellow-300 to-yellow-500",
           },
           {
             title: "Balance",
             amount: balance,
-            icon: <IndianRupee className="text-blue-600 w-5 h-5" />,
-            bg: "bg-blue-50 text-blue-800",
+            icon: <IndianRupee className="text-white w-7 h-7" />,
+            bg: "from-blue-300 to-blue-500",
           },
         ].map((item, idx) => (
-          <div
+          <motion.div
             key={idx}
-            className={`rounded-2xl p-5 shadow-sm hover:shadow-md transition ${item.bg}`}
+            whileHover={{ scale: 1.05 }}
+            className={`rounded-2xl p-6 shadow-md bg-gradient-to-r ${item.bg} text-white flex flex-col justify-between`}
           >
-            <h4 className="text-sm font-medium">{item.title}</h4>
-            <div className="mt-2 text-2xl font-bold flex items-center gap-2">
-              {item.icon} ₹{item.amount}
+            <div className="flex items-center justify-between">
+              <h4 className="text-md font-medium">{item.title}</h4>
+              {item.icon}
             </div>
-          </div>
+            <div className="mt-4 text-3xl font-bold">₹{item.amount}</div>
+          </motion.div>
         ))}
       </div>
 
       {/* Bar Chart */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm">
+      <div className="bg-white rounded-2xl p-6 shadow-md">
         <h2 className="text-lg font-semibold text-gray-800 mb-4">
           Overview Chart
         </h2>
         <div className="w-full h-[300px] md:h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} barSize={60}>
-              <CartesianGrid strokeDasharray="3 3" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip formatter={(value: number) => `₹${value}`} />
-              <Bar dataKey="value" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+              <Bar
+                dataKey="value"
+                fill="url(#colorGradient)"
+                radius={[10, 10, 0, 0]}
+              />
+              <defs>
+                <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.9} />
+                  <stop offset="100%" stopColor="#93c5fd" stopOpacity={0.3} />
+                </linearGradient>
+              </defs>
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -163,64 +176,48 @@ const Dashboard: React.FC = () => {
             title: "Recent Income",
             icon: <ArrowUpCircle className="text-green-600" />,
             data: recentIncome,
-            header: "bg-green-100",
-            alt: "bg-green-50",
-            color: "text-green-800",
+            badge: "bg-green-100 text-green-700",
             dateKey: "date",
           },
           {
             title: "Recent Expenses",
             icon: <ArrowDownCircle className="text-red-600" />,
             data: recentExpenses,
-            header: "bg-red-100",
-            alt: "bg-red-50",
-            color: "text-red-800",
+            badge: "bg-red-100 text-red-700",
             dateKey: "date",
           },
           {
             title: "Recent Dues",
             icon: <CalendarDays className="text-yellow-600" />,
             data: recentDues,
-            header: "bg-yellow-100",
-            alt: "bg-yellow-50",
-            color: "text-yellow-800",
+            badge: "bg-yellow-100 text-yellow-700",
             dateKey: "dueDate",
           },
         ].map((section, idx) => (
-          <div key={idx} className="bg-white p-5 rounded-2xl shadow-sm">
-            <div className="flex items-center gap-2 mb-3">
+          <div key={idx} className="bg-white p-6 rounded-2xl shadow-md">
+            <div className="flex items-center gap-2 mb-4">
               {section.icon}
-              <h3 className={`font-semibold text-md ${section.color}`}>
-                {section.title}
-              </h3>
+              <h3 className="font-semibold text-gray-700">{section.title}</h3>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm rounded-xl">
-                <thead className={`${section.header} ${section.color}`}>
-                  <tr>
-                    <th className="text-left px-3 py-2">Date</th>
-                    <th className="text-left px-3 py-2">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(Array.isArray(section.data) ? section.data.slice(0, 4) : []).map(
-                    (item: any, i) => (
-                      <tr
-                        key={i}
-                        className={`${
-                          i % 2 === 0 ? "bg-white" : section.alt
-                        } hover:bg-gray-50`}
-                      >
-                        <td className="px-3 py-2">
-                          {formatDate(item[section.dateKey])}
-                        </td>
-                        <td className="px-3 py-2 font-medium">₹{item.amount}</td>
-                      </tr>
-                    )
-                  )}
-                </tbody>
-              </table>
-            </div>
+            <ul className="space-y-3">
+              {(Array.isArray(section.data) ? section.data.slice(0, 4) : []).map(
+                (item: any, i) => (
+                  <li
+                    key={i}
+                    className="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition"
+                  >
+                    <span className="text-sm text-gray-500">
+                      {formatDate(item[section.dateKey])}
+                    </span>
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-medium ${section.badge}`}
+                    >
+                      ₹{item.amount}
+                    </span>
+                  </li>
+                )
+              )}
+            </ul>
           </div>
         ))}
       </div>
