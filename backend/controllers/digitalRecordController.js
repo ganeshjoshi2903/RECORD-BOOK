@@ -16,10 +16,7 @@ export const createRecord = async (req, res) => {
       return res.status(400).json({ message: "Invalid date format" });
     }
 
-    if (
-      recordDate.getFullYear() < today.getFullYear() - 1 ||
-      recordDate > today
-    ) {
+    if (recordDate.getFullYear() < today.getFullYear() - 1 || recordDate > today) {
       return res.status(400).json({
         message: "Date must be from current or previous year, not future",
       });
@@ -31,9 +28,7 @@ export const createRecord = async (req, res) => {
         return res.status(400).json({ message: "Invalid due date format" });
       }
       if (due < recordDate) {
-        return res
-          .status(400)
-          .json({ message: "Due Date cannot be earlier than record date" });
+        return res.status(400).json({ message: "Due Date cannot be earlier than record date" });
       }
     }
 
@@ -94,16 +89,11 @@ export const getRecords = async (req, res) => {
 };
 
 /**
- * ✅ Get only due records
+ * ✅ Get all due records (paid & unpaid)
  */
 export const getDueRecords = async (req, res) => {
   try {
-    const today = new Date();
-    const dueRecords = await DigitalRecord.find({
-      type: "Due",
-      status: "due",
-      dueDate: { $lte: today },
-    })
+    const dueRecords = await DigitalRecord.find({ type: "Due" }) // return all due records
       .sort({ dueDate: 1 })
       .lean();
 
@@ -135,7 +125,7 @@ export const deleteRecord = async (req, res) => {
 };
 
 /**
- * ✅ Update record
+ * ✅ Update record (status toggle included)
  */
 export const updateRecord = async (req, res) => {
   try {
@@ -146,10 +136,7 @@ export const updateRecord = async (req, res) => {
       const today = new Date();
       const recordDate = new Date(date);
 
-      if (
-        recordDate.getFullYear() < today.getFullYear() - 1 ||
-        recordDate > today
-      ) {
+      if (recordDate.getFullYear() < today.getFullYear() - 1 || recordDate > today) {
         return res.status(400).json({
           message: "Date must be from current or previous year, not future",
         });
@@ -161,15 +148,11 @@ export const updateRecord = async (req, res) => {
       const due = new Date(dueDate);
 
       if (due < recDate) {
-        return res
-          .status(400)
-          .json({ message: "Due Date cannot be earlier than record date" });
+        return res.status(400).json({ message: "Due Date cannot be earlier than record date" });
       }
     }
 
-    const updated = await DigitalRecord.findByIdAndUpdate(id, req.body, {
-      new: true,
-    });
+    const updated = await DigitalRecord.findByIdAndUpdate(id, req.body, { new: true });
 
     if (!updated) {
       return res.status(404).json({ message: "Record not found" });
@@ -207,9 +190,7 @@ export const exportRecordsPDF = async (req, res) => {
     const filterDate = new Date();
     filterDate.setDate(filterDate.getDate() - (days || 1));
 
-    const records = await DigitalRecord.find({
-      date: { $gte: filterDate },
-    }).sort({ date: -1 });
+    const records = await DigitalRecord.find({ date: { $gte: filterDate } }).sort({ date: -1 });
 
     const doc = new PDFDocument();
     res.setHeader("Content-Type", "application/pdf");
@@ -228,11 +209,7 @@ export const exportRecordsPDF = async (req, res) => {
         .text(
           `${i + 1}. ${rec.type} | ${rec.category} | ₹${rec.amount} | ${new Date(
             rec.date
-          ).toLocaleDateString()} ${
-            rec.dueDate
-              ? "| Due: " + new Date(rec.dueDate).toLocaleDateString()
-              : ""
-          }`
+          ).toLocaleDateString()} ${rec.dueDate ? "| Due: " + new Date(rec.dueDate).toLocaleDateString() : ""}`
         );
       doc.moveDown(0.5);
     });
