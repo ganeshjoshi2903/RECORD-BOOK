@@ -33,14 +33,14 @@ const GetStartedModal: React.FC<GetStartedModalProps> = ({ isOpen, onClose, sele
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 2000));
-    
+
     alert(`Welcome! Your ${selectedPlan.name} plan subscription has been initiated. We'll contact you shortly!`);
     setIsSubmitting(false);
     onClose();
-    
+
     // Reset form
     setFormData({
       name: '',
@@ -53,10 +53,11 @@ const GetStartedModal: React.FC<GetStartedModalProps> = ({ isOpen, onClose, sele
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto animate-in fade-in duration-300">
+        
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
-            <div 
+            <div
               className="w-4 h-4 rounded-full"
               style={{ backgroundColor: selectedPlan.color }}
             ></div>
@@ -76,7 +77,7 @@ const GetStartedModal: React.FC<GetStartedModalProps> = ({ isOpen, onClose, sele
         <div className="p-6 bg-gray-50 border-b border-gray-200">
           <div className="text-center">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Selected Plan</h3>
-            <div 
+            <div
               className="text-2xl font-bold mb-2"
               style={{ color: selectedPlan.color }}
             >
@@ -186,10 +187,10 @@ const GetStartedModal: React.FC<GetStartedModalProps> = ({ isOpen, onClose, sele
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 py-3 px-4 text-white rounded-lg transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-3 px-4 text-white rounded-lg transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700"
               style={{ 
-                backgroundColor: selectedPlan.color,
-                boxShadow: `0 4px 14px 0 ${selectedPlan.color}40`
+                backgroundColor: "#2563eb", // fixed blue color
+                boxShadow: `0 4px 14px 0 #2563eb40`
               }}
             >
               {isSubmitting ? (
