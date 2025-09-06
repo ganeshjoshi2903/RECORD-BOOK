@@ -69,11 +69,15 @@ const SignUp: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-cyan-100 to-blue-100">
       <div className="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-md">
-        <h2 className="text-3xl font-extrabold text-center text-cyan-700 mb-6">Create Your Account</h2>
+        <h2 className="text-3xl font-extrabold text-center text-cyan-700 mb-6">
+          Create Your Account
+        </h2>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-600">Name</label>
+            <label className="block text-sm font-medium text-gray-600">
+              Name
+            </label>
             <input
               name="name"
               type="text"
@@ -86,7 +90,9 @@ const SignUp: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-600">Email</label>
+            <label className="block text-sm font-medium text-gray-600">
+              Email <span className="text-red-500">*</span>
+            </label>
             <input
               name="email"
               type="email"
@@ -99,7 +105,9 @@ const SignUp: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-600">Password</label>
+            <label className="block text-sm font-medium text-gray-600">
+              Password <span className="text-red-500">*</span>
+            </label>
             <div className="relative">
               <input
                 name="password"
@@ -127,6 +135,7 @@ const SignUp: React.FC = () => {
 
           <button
             type="submit"
+            title="Create a new account"
             className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-2 px-4 rounded-md transition"
           >
             Sign Up
@@ -138,6 +147,7 @@ const SignUp: React.FC = () => {
           <span
             onClick={() => navigate('/login')}
             className="text-cyan-600 hover:underline cursor-pointer"
+            title="Go to Login page"
           >
             Login
           </span>

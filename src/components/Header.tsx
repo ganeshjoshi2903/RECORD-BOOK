@@ -1,12 +1,34 @@
-import React from 'react';
-import { BookOpen, LogIn, UserPlus } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState } from "react";
+import { BookOpen, LogIn, UserPlus } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+
+// Tooltip component
+const Tooltip: React.FC<{ text: string; children: React.ReactNode }> = ({
+  text,
+  children,
+}) => {
+  const [visible, setVisible] = useState(false);
+
+  return (
+    <div
+      className="relative inline-block"
+      onMouseEnter={() => setVisible(true)}
+      onMouseLeave={() => setVisible(false)}
+    >
+      {children}
+      {visible && (
+        <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-black text-white text-xs font-medium rounded-md px-3 py-1 shadow-lg whitespace-nowrap z-50">
+          {text}
+          <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-black rotate-45"></div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const Header = () => {
   const location = useLocation();
-
-  const isDashboardRoute = location.pathname.startsWith('/dashboard');
-
+  const isDashboardRoute = location.pathname.startsWith("/dashboard");
   if (isDashboardRoute) return null;
 
   return (
@@ -22,7 +44,6 @@ const Header = () => {
               <span className="text-xl font-bold text-gray-900">Record Book</span>
             </div>
 
-            {/* Nav Links */}
             <nav className="hidden md:flex space-x-8">
               <Link
                 to="/"
@@ -53,21 +74,25 @@ const Header = () => {
 
           {/* Auth Buttons */}
           <div className="flex items-center space-x-4">
-            <Link
-              to="/login"
-              className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
-            >
-              <LogIn className="w-4 h-4" />
-              <span className="hidden sm:inline">Login</span>
-            </Link>
+            <Tooltip text="Login to your account">
+              <Link
+                to="/login"
+                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200 px-3 py-1 rounded-md"
+              >
+                <LogIn className="w-4 h-4" />
+                <span className="hidden sm:inline">Login</span>
+              </Link>
+            </Tooltip>
 
-            <Link
-              to="/signup"
-              className="flex items-center space-x-2 bg-gradient-to-r from-teal-500 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-teal-600 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-            >
-              <UserPlus className="w-4 h-4" />
-              <span>Sign Up</span>
-            </Link>
+            <Tooltip text="Create a new account">
+              <Link
+                to="/signup"
+                className="flex items-center space-x-2 bg-gradient-to-r from-teal-500 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-teal-600 hover:to-blue-700 transition-all duration-200 shadow-lg"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>Sign Up</span>
+              </Link>
+            </Tooltip>
           </div>
         </div>
       </div>

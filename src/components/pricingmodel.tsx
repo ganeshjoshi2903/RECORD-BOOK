@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { X, Check, User, Mail, Building } from 'lucide-react';
+import React, { useState } from "react";
+import { X, Check, User, Mail, Building } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface GetStartedModalProps {
   isOpen: boolean;
@@ -11,22 +12,26 @@ interface GetStartedModalProps {
   } | null;
 }
 
-const GetStartedModal: React.FC<GetStartedModalProps> = ({ isOpen, onClose, selectedPlan }) => {
+const GetStartedModal: React.FC<GetStartedModalProps> = ({
+  isOpen,
+  onClose,
+  selectedPlan,
+}) => {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    company: '',
-    phone: ''
+    name: "",
+    email: "",
+    company: "",
+    phone: "",
   });
-
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   if (!isOpen || !selectedPlan) return null;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -34,26 +39,30 @@ const GetStartedModal: React.FC<GetStartedModalProps> = ({ isOpen, onClose, sele
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    alert(`Welcome! Your ${selectedPlan.name} plan subscription has been initiated. We'll contact you shortly!`);
+    if (selectedPlan.name === "Free") {
+      alert(
+        `🎉 Welcome! Your Free Trial with ${selectedPlan.name} Plan has been activated for 30 days.`
+      );
+      onClose();
+    } else {
+      onClose();
+      navigate("/payment", { state: { selectedPlan } });
+    }
+
     setIsSubmitting(false);
-    onClose();
-
-    // Reset form
     setFormData({
-      name: '',
-      email: '',
-      company: '',
-      phone: ''
+      name: "",
+      email: "",
+      company: "",
+      phone: "",
     });
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto animate-in fade-in duration-300">
-        
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
@@ -76,7 +85,9 @@ const GetStartedModal: React.FC<GetStartedModalProps> = ({ isOpen, onClose, sele
         {/* Plan Summary */}
         <div className="p-6 bg-gray-50 border-b border-gray-200">
           <div className="text-center">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Selected Plan</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Selected Plan
+            </h3>
             <div
               className="text-2xl font-bold mb-2"
               style={{ color: selectedPlan.color }}
@@ -89,7 +100,11 @@ const GetStartedModal: React.FC<GetStartedModalProps> = ({ isOpen, onClose, sele
             <div className="flex items-center justify-center space-x-4 mt-4 text-sm text-gray-600">
               <div className="flex items-center space-x-1">
                 <Check size={16} className="text-green-600" />
-                <span>30-day free trial</span>
+                <span>
+                  {selectedPlan.name === "Free"
+                    ? "30-day free trial"
+                    : "Secure Payment"}
+                </span>
               </div>
               <div className="flex items-center space-x-1">
                 <Check size={16} className="text-green-600" />
@@ -102,7 +117,10 @@ const GetStartedModal: React.FC<GetStartedModalProps> = ({ isOpen, onClose, sele
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               <User size={16} className="inline mr-2" />
               Full Name *
             </label>
@@ -119,7 +137,10 @@ const GetStartedModal: React.FC<GetStartedModalProps> = ({ isOpen, onClose, sele
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               <Mail size={16} className="inline mr-2" />
               Email Address *
             </label>
@@ -136,7 +157,10 @@ const GetStartedModal: React.FC<GetStartedModalProps> = ({ isOpen, onClose, sele
           </div>
 
           <div>
-            <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="company"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               <Building size={16} className="inline mr-2" />
               Company Name
             </label>
@@ -152,7 +176,10 @@ const GetStartedModal: React.FC<GetStartedModalProps> = ({ isOpen, onClose, sele
           </div>
 
           <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="phone"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Phone Number
             </label>
             <input
@@ -166,15 +193,6 @@ const GetStartedModal: React.FC<GetStartedModalProps> = ({ isOpen, onClose, sele
             />
           </div>
 
-          {/* Terms */}
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <p className="text-sm text-blue-800">
-              By clicking "Start Free Trial", you agree to our Terms of Service and Privacy Policy. 
-              Your trial will automatically convert to a paid subscription after 30 days.
-            </p>
-          </div>
-
-          {/* Buttons */}
           <div className="flex space-x-3 pt-4">
             <button
               type="button"
@@ -188,19 +206,16 @@ const GetStartedModal: React.FC<GetStartedModalProps> = ({ isOpen, onClose, sele
               type="submit"
               disabled={isSubmitting}
               className="flex-1 py-3 px-4 text-white rounded-lg transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700"
-              style={{ 
-                backgroundColor: "#2563eb", // fixed blue color
-                boxShadow: `0 4px 14px 0 #2563eb40`
+              style={{
+                backgroundColor: "#2563eb",
+                boxShadow: `0 4px 14px 0 #2563eb40`,
               }}
             >
-              {isSubmitting ? (
-                <div className="flex items-center justify-center space-x-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Processing...</span>
-                </div>
-              ) : (
-                'Start Free Trial'
-              )}
+              {isSubmitting
+                ? "Processing..."
+                : selectedPlan.name === "Free"
+                ? "Start Free Trial"
+                : "Proceed to Payment"}
             </button>
           </div>
         </form>

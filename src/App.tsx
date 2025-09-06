@@ -21,6 +21,7 @@ import EditProfile from "./components/pages/Editprofile";
 import Features from "./components/Features";
 import AboutUs from "./components/AboutUs";
 import Pricing from "./components/Pricing";
+import Payment from "./components/Payment";   // ✅ Added Payment page
 
 // 🔹 New pages for Forgot + Reset Password
 import ForgotPassword from "./components/pages/forgetpassword";
@@ -73,6 +74,17 @@ function App() {
               <>
                 <Header />
                 <Pricing />
+              </>
+            }
+          />
+
+          {/* ✅ Payment Page */}
+          <Route
+            path="/payment"
+            element={
+              <>
+                <Header />
+                <Payment />
               </>
             }
           />

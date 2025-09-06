@@ -32,13 +32,17 @@ const formatDisplayDate = (s?: string) => {
   if (!s) return "—";
   const d = new Date(s);
   if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  return d.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 };
 
 const DigitalRecords: React.FC = () => {
   const [records, setRecords] = useState<RecordItem[]>([]);
   const [error, setError] = useState<string>("");
-  const [daysFilter, setDaysFilter] = useState<number>(1);
+  const [filter, setFilter] = useState<string>("7days");
   const [formData, setFormData] = useState<RecordItem>({
     type: "Income",
     category: "",
@@ -102,13 +106,19 @@ const DigitalRecords: React.FC = () => {
       const due = parseYMD(data.dueDate);
       if (!due) return "Please select a valid Due Date.";
       if (due < d) return "Due Date cannot be earlier than the main Date.";
-      if (due > nextYearToday) return "Due Date cannot be more than 1 year from today.";
+      if (due > nextYearToday)
+        return "Due Date cannot be more than 1 year from today.";
     }
     return null;
   };
 
   const handleAddRecord = async () => {
-    if (!formData.type || !formData.category || !formData.amount || !formData.date) {
+    if (
+      !formData.type ||
+      !formData.category ||
+      !formData.amount ||
+      !formData.date
+    ) {
       setError("All fields are required.");
       return;
     }
@@ -128,7 +138,9 @@ const DigitalRecords: React.FC = () => {
       const payload = {
         ...formData,
         date: isoYMD(new Date(formData.date)),
-        dueDate: formData.dueDate ? isoYMD(new Date(formData.dueDate)) : undefined,
+        dueDate: formData.dueDate
+          ? isoYMD(new Date(formData.dueDate))
+          : undefined,
       };
       const res = await axios.post(`${API_URL}/api/records`, payload);
       setRecords((prev) => [...prev, res.data]);
@@ -158,22 +170,67 @@ const DigitalRecords: React.FC = () => {
     }
   };
 
-  const getFilteredForDays = () => {
-    const now = new Date();
-    const cutoff = new Date();
-    cutoff.setDate(now.getDate() - (daysFilter - 1));
-    cutoff.setHours(0, 0, 0, 0);
-    return records.filter((r) => {
-      const d = parseYMD(r.date);
-      return d && d >= cutoff && d <= now;
-    });
+  // === New Filter Logic ===
+  const getFilteredRecords = () => {
+    const now = clampToYMD(new Date());
+
+    if (filter === "7days") {
+      const cutoff = new Date(now);
+      cutoff.setDate(cutoff.getDate() - 6); // last 7 days including today
+      return records.filter((r) => {
+        const d = parseYMD(r.date);
+        return d && d >= cutoff && d <= now;
+      });
+    }
+
+    if (filter === "lastWeek") {
+      const day = now.getDay(); // 0=Sunday, 1=Monday
+      const lastSunday = new Date(now);
+      lastSunday.setDate(now.getDate() - day); // this week's Sunday
+      const prevMonday = new Date(lastSunday);
+      prevMonday.setDate(prevMonday.getDate() - 6); // last week Monday
+
+      return records.filter((r) => {
+        const d = parseYMD(r.date);
+        return d && d >= prevMonday && d < lastSunday;
+      });
+    }
+
+    if (filter === "last2Weeks") {
+      const cutoff = new Date(now);
+      cutoff.setDate(cutoff.getDate() - 13);
+      return records.filter((r) => {
+        const d = parseYMD(r.date);
+        return d && d >= cutoff && d <= now;
+      });
+    }
+
+    if (filter === "lastMonth") {
+      const firstDayPrevMonth = new Date(
+        now.getFullYear(),
+        now.getMonth() - 1,
+        1
+      );
+      const lastDayPrevMonth = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        0
+      ); // day 0 of current month = last day of prev month
+
+      return records.filter((r) => {
+        const d = parseYMD(r.date);
+        return d && d >= firstDayPrevMonth && d <= lastDayPrevMonth;
+      });
+    }
+
+    return records;
   };
 
-  // === PDF Export Functions with DueTracker-style format ===
+  // === PDF Export Functions ===
   const handleExportPDF = () => {
-    const list = getFilteredForDays();
+    const list = getFilteredRecords();
     const doc = new jsPDF();
-    doc.text(`Digital Records - Last ${daysFilter} Day(s)`, 14, 16);
+    doc.text(`Digital Records - ${filter}`, 14, 16);
 
     autoTable(doc, {
       startY: 22,
@@ -181,7 +238,9 @@ const DigitalRecords: React.FC = () => {
       body: list.map((r) => [
         r.type,
         r.category || "—",
-        `Rs. ${r.amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`,
+        `Rs. ${r.amount.toLocaleString("en-IN", {
+          minimumFractionDigits: 2,
+        })}`,
         formatDisplayDate(r.date),
         r.dueDate ? formatDisplayDate(r.dueDate) : "—",
       ]),
@@ -190,7 +249,7 @@ const DigitalRecords: React.FC = () => {
       alternateRowStyles: { fillColor: [248, 248, 248] },
     });
 
-    doc.save(`digital_records_last_${daysFilter}_days.pdf`);
+    doc.save(`digital_records_${filter}.pdf`);
   };
 
   const handleExportSinglePDF = (record: RecordItem) => {
@@ -203,9 +262,17 @@ const DigitalRecords: React.FC = () => {
       body: [
         ["Type", record.type],
         ["Category", record.category || "—"],
-        ["Amount", `Rs. ${record.amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`],
+        [
+          "Amount",
+          `Rs. ${record.amount.toLocaleString("en-IN", {
+            minimumFractionDigits: 2,
+          })}`,
+        ],
         ["Date", formatDisplayDate(record.date)],
-        ["Due Date", record.dueDate ? formatDisplayDate(record.dueDate) : "—"],
+        [
+          "Due Date",
+          record.dueDate ? formatDisplayDate(record.dueDate) : "—",
+        ],
       ],
       styles: { fontSize: 11 },
       headStyles: { fillColor: [200, 200, 255] },
@@ -217,7 +284,9 @@ const DigitalRecords: React.FC = () => {
 
   const handleExportSummaryPDF = () => {
     const todayStr = isoYMD(today);
-    const todayRecords = records.filter((r) => isoYMD(new Date(r.date)) === todayStr);
+    const todayRecords = records.filter(
+      (r) => isoYMD(new Date(r.date)) === todayStr
+    );
 
     const totalIncome = todayRecords
       .filter((r) => r.type === "Income")
@@ -237,12 +306,29 @@ const DigitalRecords: React.FC = () => {
       startY: 32,
       head: [["Category", "Total"]],
       body: [
-        ["Income", `Rs. ${totalIncome.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`],
-        ["Expense", `Rs. ${totalExpense.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`],
-        ["Due", `Rs. ${totalDue.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`],
+        [
+          "Income",
+          `Rs. ${totalIncome.toLocaleString("en-IN", {
+            minimumFractionDigits: 2,
+          })}`,
+        ],
+        [
+          "Expense",
+          `Rs. ${totalExpense.toLocaleString("en-IN", {
+            minimumFractionDigits: 2,
+          })}`,
+        ],
+        [
+          "Due",
+          `Rs. ${totalDue.toLocaleString("en-IN", {
+            minimumFractionDigits: 2,
+          })}`,
+        ],
         [
           "Net Total",
-          `Rs. ${(totalIncome - totalExpense).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`,
+          `Rs. ${(totalIncome - totalExpense).toLocaleString("en-IN", {
+            minimumFractionDigits: 2,
+          })}`,
         ],
       ],
       styles: { fontSize: 12 },
@@ -259,7 +345,9 @@ const DigitalRecords: React.FC = () => {
 
   return (
     <div className="p-6 min-h-screen bg-[#f5f7fb]">
-      <h2 className="text-3xl font-semibold mb-6 text-indigo-700">Digital Records</h2>
+      <h2 className="text-3xl font-semibold mb-6 text-indigo-700">
+        Digital Records
+      </h2>
 
       <div className="flex gap-2 mb-6 flex-wrap items-end">
         <select
@@ -322,16 +410,16 @@ const DigitalRecords: React.FC = () => {
           Add Record
         </button>
 
+        {/* New Filter Dropdown */}
         <select
-          value={daysFilter}
-          onChange={(e) => setDaysFilter(Number(e.target.value))}
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
           className="border rounded px-3 py-2 shadow-sm"
         >
-          <option value={1}>Last 1 Day</option>
-          <option value={2}>Last 2 Days</option>
-          <option value={3}>Last 3 Days</option>
-          <option value={7}>Last 7 Days</option>
-          <option value={30}>Last 30 Days</option>
+          <option value="7days">Last 7 Days</option>
+          <option value="lastWeek">Last Week</option>
+          <option value="last2Weeks">Last 2 Weeks</option>
+          <option value="lastMonth">Last Month</option>
         </select>
 
         <button
@@ -364,15 +452,22 @@ const DigitalRecords: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {records.map((record) => (
+            {getFilteredRecords().map((record) => (
               <tr key={record._id} className="hover:bg-gray-50 transition">
                 <td className="border px-4 py-2">{record.type}</td>
                 <td className="border px-4 py-2">{record.category || "—"}</td>
                 <td className="border px-4 py-2 text-gray-900 font-medium">
-                  Rs. {record.amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                  Rs.{" "}
+                  {record.amount.toLocaleString("en-IN", {
+                    minimumFractionDigits: 2,
+                  })}
                 </td>
-                <td className="border px-4 py-2">{formatDisplayDate(record.date)}</td>
-                <td className="border px-4 py-2">{record.dueDate ? formatDisplayDate(record.dueDate) : "—"}</td>
+                <td className="border px-4 py-2">
+                  {formatDisplayDate(record.date)}
+                </td>
+                <td className="border px-4 py-2">
+                  {record.dueDate ? formatDisplayDate(record.dueDate) : "—"}
+                </td>
                 <td className="border px-4 py-2 flex gap-3">
                   <button
                     onClick={() => handleExportSinglePDF(record)}
@@ -389,7 +484,7 @@ const DigitalRecords: React.FC = () => {
                 </td>
               </tr>
             ))}
-            {records.length === 0 && (
+            {getFilteredRecords().length === 0 && (
               <tr>
                 <td colSpan={6} className="text-center text-gray-500 py-4">
                   No records found.

@@ -9,23 +9,46 @@ const Pricing: React.FC = () => {
     color: string;
   } | null>(null);
 
-  // Array of pricing plans with their details.
+  // ✅ Subscription Plans
   const plans = [
+    {
+      name: "Free",
+      price: "₹0 / month",
+      color: "#4CAF50", // green
+      features: [
+        "10 User accounts",
+        "Unlimited Records",
+        "Full Customer Management with Smart Filters",
+        "Advanced Reports & Analytics",
+        "Smart Notifications & Reminders",
+        "Priority Security Features",
+        "24/7 Premium Support",
+        "All Gold Features Included Free",
+      ],
+    },
     {
       name: "Bronze",
       price: "₹199 / month",
       color: "#cd7f32",
-      features: ["1 User Account", "100 Records / Month", "Basic Support"],
+      features: [
+        "3 User accounts",
+        "500 Transactions (Debit/Credit) per month",
+        "75 New customers per month",
+        "Basic Reports",
+        "Email & Call Support (11 AM – 6 PM)",
+      ],
     },
     {
       name: "Silver",
       price: "₹499 / month",
       color: "#c0c0c0",
+      popular: true, // ✅ Most Popular
       features: [
-        "5 User Accounts",
-        "1000 Records / Month",
-        "Priority Support",
-        "Data Backup",
+        "6 User accounts",
+        "1,500 Records per month",
+        "Advanced Customer Management & Search",
+        "Advanced Reports & Analytics",
+        "Email Support (11 AM – 6 PM)",
       ],
     },
     {
@@ -33,11 +56,13 @@ const Pricing: React.FC = () => {
       price: "₹999 / month",
       color: "#ffd700",
       features: [
-        "10 Users",
-        "10000 Records",
+        "10 User accounts",
+        "Unlimited Records",
+        "Full Customer Management with Smart Filters",
+        "Advanced Reports & Analytics",
+        "Smart Notifications & Reminders",
+        "Priority Security Features",
         "24/7 Premium Support",
-        "Data Backup & Restore",
-        "Advanced Reports",
       ],
     },
   ];
@@ -53,43 +78,49 @@ const Pricing: React.FC = () => {
   };
 
   return (
-    <div className="bg-slate-50 min-h-screen flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 font-inter">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl">
-          Our Pricing Plans
+    <div className="bg-slate-50 min-h-screen flex flex-col items-center justify-center py-10 px-4 sm:px-6 lg:px-8 font-inter">
+      <div className="text-center mb-10">
+        <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+          Subscription Plans
         </h1>
-        <p className="mt-3 max-w-2xl mx-auto text-xl text-gray-500">
+        <p className="mt-2 max-w-2xl mx-auto text-lg text-gray-500">
           Choose the plan that best suits your business needs.
         </p>
       </div>
 
-      {/* Plans ek line me 3 columns */}
-      <div className="grid gap-8 md:grid-cols-3 max-w-screen-xl mx-auto">
+      {/* Plans grid - 4 columns */}
+      <div className="grid gap-6 md:grid-cols-4 max-w-screen-xl mx-auto">
         {plans.map((plan, index) => (
           <div
             key={index}
-            className="relative bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden w-full max-w-sm mx-auto"
-            style={{ borderTop: `6px solid ${plan.color}` }}
+            className="relative bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden w-full max-w-xs mx-auto"
+            style={{ borderTop: `4px solid ${plan.color}` }}
           >
-            <div className="p-8 text-center flex flex-col h-full">
+            {/* ✅ Popular Badge */}
+            {plan.popular && (
+              <div className="absolute top-0 right-0 bg-indigo-600 text-white text-xs font-bold px-2 py-1 rounded-bl-md">
+                Most Popular
+              </div>
+            )}
+            <div className="p-6 text-center flex flex-col h-full">
               <h2
-                className="text-2xl font-bold mb-4"
+                className="text-xl font-bold mb-3"
                 style={{ color: plan.color }}
               >
                 {plan.name}
               </h2>
-              <p className="text-4xl font-extrabold text-gray-900 mb-6">
+              <p className="text-2xl font-extrabold text-gray-900 mb-4">
                 {plan.price}
               </p>
-              <ul className="text-gray-700 text-base flex-grow space-y-4 text-left">
+              <ul className="text-gray-700 text-sm flex-grow space-y-3 text-left">
                 {plan.features.map((feature, idx) => (
                   <li
                     key={idx}
-                    className="flex items-center gap-3 border-b border-gray-200 pb-2 last:border-b-0"
+                    className="flex items-center gap-2 border-b border-gray-200 pb-1 last:border-b-0"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-green-500 flex-shrink-0"
+                      className="h-4 w-4 text-green-500 flex-shrink-0"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -107,9 +138,9 @@ const Pricing: React.FC = () => {
               </ul>
               <button
                 onClick={() => handleGetStarted(plan)}
-                className="mt-8 w-full bg-gray-800 text-white font-bold py-3 px-6 rounded-full shadow-md hover:bg-gray-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                className="mt-6 w-full bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-indigo-500 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-400"
               >
-                Get Started
+                {plan.name === "Free" ? "Start Free Plan" : "Get Started"}
               </button>
             </div>
           </div>

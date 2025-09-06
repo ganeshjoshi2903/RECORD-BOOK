@@ -54,7 +54,9 @@ const Login: React.FC = () => {
         {/* Form */}
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-600">Email</label>
+            <label className="block text-sm font-medium text-gray-600">
+              Email <span className="text-red-500">*</span>
+            </label>
             <input
               type="email"
               value={email}
@@ -66,7 +68,9 @@ const Login: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-600">Password</label>
+            <label className="block text-sm font-medium text-gray-600">
+              Password <span className="text-red-500">*</span>
+            </label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -95,6 +99,7 @@ const Login: React.FC = () => {
 
           <button
             type="submit"
+            title="Login to your account"
             className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:opacity-90 text-white font-semibold py-3 px-4 rounded-xl shadow-lg transition"
           >
             Login
@@ -107,6 +112,7 @@ const Login: React.FC = () => {
           <span
             onClick={() => navigate("/signup")}
             className="text-blue-600 font-medium hover:underline cursor-pointer"
+            title="Go to Sign Up page"
           >
             Sign up
           </span>
@@ -114,6 +120,7 @@ const Login: React.FC = () => {
           <span
             onClick={() => navigate("/forgot")}
             className="text-cyan-600 font-medium hover:underline cursor-pointer"
+            title="Recover your password"
           >
             Forgot Password?
           </span>
