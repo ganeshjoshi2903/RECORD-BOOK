@@ -2,9 +2,7 @@ import DigitalRecord from "../models/DigitalRecord.js";
 import Notification from "../models/notification.js";
 import PDFDocument from "pdfkit";
 
-/**
- * ✅ Create a new record with date validation
- */
+
 export const createRecord = async (req, res) => {
   try {
     const { type, category, amount, date, dueDate, status } = req.body;
@@ -88,12 +86,9 @@ export const getRecords = async (req, res) => {
   }
 };
 
-/**
- * ✅ Get all due records (paid & unpaid)
- */
 export const getDueRecords = async (req, res) => {
   try {
-    const dueRecords = await DigitalRecord.find({ type: "Due" }) // return all due records
+    const dueRecords = await DigitalRecord.find({ type: "Due" })
       .sort({ dueDate: 1 })
       .lean();
 
@@ -104,9 +99,6 @@ export const getDueRecords = async (req, res) => {
   }
 };
 
-/**
- * ✅ Delete record
- */
 export const deleteRecord = async (req, res) => {
   try {
     const { id } = req.params;
@@ -124,9 +116,6 @@ export const deleteRecord = async (req, res) => {
   }
 };
 
-/**
- * ✅ Update record (status toggle included)
- */
 export const updateRecord = async (req, res) => {
   try {
     const { id } = req.params;
@@ -181,9 +170,6 @@ export const updateRecord = async (req, res) => {
   }
 };
 
-/**
- * ✅ Export Records as PDF
- */
 export const exportRecordsPDF = async (req, res) => {
   try {
     const { days } = req.query;
@@ -225,9 +211,6 @@ export const exportRecordsPDF = async (req, res) => {
   }
 };
 
-/**
- * ✅ Daily Summary (Income, Expense, Due totals)
- */
 export const getDailySummary = async (req, res) => {
   try {
     const today = new Date();
@@ -260,4 +243,4 @@ export const getDailySummary = async (req, res) => {
     console.error("❌ Failed to fetch daily summary:", err.message);
     res.status(500).json({ message: "Failed to fetch summary" });
   }
-};
+};  

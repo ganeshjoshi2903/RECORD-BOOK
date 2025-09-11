@@ -1,6 +1,5 @@
-import React from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import {
   BookOpen,
   Users,
@@ -9,25 +8,55 @@ import {
   User,
   LogOut,
   LayoutDashboard,
-} from 'lucide-react';
+} from "lucide-react";
+import axios from "axios";
+
+// 👇 apna backend API base URL confirm karo
+const API_BASE = "http://localhost:8000";
 
 const DashboardLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [hasUnread, setHasUnread] = useState(false);
 
-  const links = [
-    { name: 'Dashboard', path: '', icon: LayoutDashboard },
-    { name: 'Digital Records', path: 'records', icon: BookOpen },
-    { name: 'Customer Management', path: 'customers', icon: Users },
-    { name: 'Due Tracker', path: 'dues', icon: TrendingDown },
-    { name: 'Notifications', path: 'notifications', icon: Bell },
-    { name: 'Profile', path: 'profile', icon: User },
-  ];
+  // ✅ unread check function
+  const checkHasUnreadNotifications = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/api/notifications/unread`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      // Backend should return { unread: true/false, count: number }
+      setHasUnread(res.data.unread === true || res.data.count > 0);
+    } catch (err) {
+      console.error("Notification check failed:", err);
+      setHasUnread(false);
+    }
+  };
+
+  useEffect(() => {
+    checkHasUnreadNotifications();
+
+    // 🔄 Poll every 10s
+    const interval = setInterval(checkHasUnreadNotifications, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('token'); // Remove authentication token
-    navigate('/login'); // ✅ Redirect directly to login page
+    localStorage.removeItem("token");
+    navigate("/login");
   };
+
+  const links = [
+    { name: "Dashboard", path: "", icon: LayoutDashboard },
+    { name: "Digital Records", path: "records", icon: BookOpen },
+    { name: "Customer Management", path: "customers", icon: Users },
+    { name: "Due Tracker", path: "dues", icon: TrendingDown },
+    { name: "Notifications", path: "notifications", icon: Bell },
+    { name: "Profile", path: "profile", icon: User },
+  ];
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-blue-50 to-gray-50 font-sans antialiased">
@@ -40,29 +69,29 @@ const DashboardLayout = () => {
           {links.map((link) => {
             const isActive =
               location.pathname === `/dashboard/${link.path}` ||
-              (link.path === '' && location.pathname === '/dashboard');
+              (link.path === "" && location.pathname === "/dashboard");
 
             return (
-              <Link
-                key={link.path || 'dashboard-root'}
+              <NavLink
+                key={link.path || "dashboard-root"}
                 to={`/dashboard/${link.path}`}
                 className={`flex items-center space-x-4 p-3.5 rounded-xl text-base transition-all duration-250 ease-in-out transform
                   ${
                     isActive
-                      ? 'bg-blue-600 text-white shadow-lg scale-[1.02] font-semibold'
-                      : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700 hover:shadow-md'
+                      ? "bg-blue-600 text-white shadow-lg scale-[1.02] font-semibold"
+                      : "text-gray-700 hover:bg-blue-50 hover:text-blue-700 hover:shadow-md"
                   }
                   group focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75`}
               >
                 <link.icon
                   className={`w-6 h-6 ${
                     isActive
-                      ? 'text-white'
-                      : 'text-blue-500 group-hover:text-blue-700'
+                      ? "text-white"
+                      : "text-blue-500 group-hover:text-blue-700"
                   } transition-colors duration-250`}
                 />
                 <span className="font-medium">{link.name}</span>
-              </Link>
+              </NavLink>
             );
           })}
         </nav>
@@ -79,15 +108,16 @@ const DashboardLayout = () => {
         <header className="flex justify-between items-center bg-white px-10 py-5 border-b border-gray-100 shadow-md">
           <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
           <div className="flex items-center space-x-6">
+            {/* 🔔 Notification bell with red dot */}
             <NavLink
               to="/dashboard/notifications"
               className="relative text-gray-500 hover:text-blue-600 transition-colors duration-200 p-2 rounded-full hover:bg-gray-100"
               title="Notifications"
             >
               <Bell className="w-6 h-6" />
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold border-2 border-white shadow-sm">
-                3
-              </span>
+              {hasUnread && (
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white shadow-sm" />
+              )}
             </NavLink>
 
             <NavLink
