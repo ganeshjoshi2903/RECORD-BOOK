@@ -14,49 +14,65 @@ const DueTracker: React.FC = () => {
   const [dueRecords, setDueRecords] = useState<DueRecord[]>([]);
   const API_URL = import.meta.env.VITE_API_URL;
 
-  // Fetch all Due records including paid/unpaid
+  // 🔹 Load cached records first or fetch from backend
   useEffect(() => {
-    fetchDueRecords();
+    const cachedDueRecords = localStorage.getItem("dueRecords");
+    if (cachedDueRecords) {
+      setDueRecords(JSON.parse(cachedDueRecords));
+    } else {
+      fetchDueRecords();
+    }
   }, []);
 
+  // 🔹 Fetch due records from backend
   const fetchDueRecords = async () => {
     try {
       const res = await axios.get(`${API_URL}/api/dashboard/due-records`);
-      setDueRecords(res.data); // backend now sends all "Due" records
+      setDueRecords(res.data);
+      localStorage.setItem("dueRecords", JSON.stringify(res.data));
     } catch (err) {
       console.error("Error fetching due records:", err);
     }
   };
 
+  // 🔹 Delete record
   const deleteRecord = async (id: string) => {
     try {
       await axios.delete(`${API_URL}/api/records/${id}`);
-      setDueRecords(prev => prev.filter(record => record._id !== id));
+      const updatedRecords = dueRecords.filter(record => record._id !== id);
+      setDueRecords(updatedRecords);
+      localStorage.setItem("dueRecords", JSON.stringify(updatedRecords));
     } catch (err) {
       console.error("Error deleting record:", err);
     }
   };
 
+  // 🔹 Toggle paid/due status
   const toggleStatusOnBackend = async (id: string, currentStatus: "paid" | "due") => {
     try {
       const newStatus = currentStatus === "paid" ? "due" : "paid";
 
       // Optimistic UI update
-      setDueRecords(prev =>
-        prev.map(record => record._id === id ? { ...record, status: newStatus } : record)
+      const updatedRecords = dueRecords.map(record =>
+        record._id === id ? { ...record, status: newStatus } : record
       );
+      setDueRecords(updatedRecords);
+      localStorage.setItem("dueRecords", JSON.stringify(updatedRecords));
 
       // Send update to backend
       await axios.put(`${API_URL}/api/records/${id}`, { status: newStatus });
     } catch (err) {
       console.error("Error updating status:", err);
       // Revert if failed
-      setDueRecords(prev =>
-        prev.map(record => record._id === id ? { ...record, status: currentStatus } : record)
+      const revertedRecords = dueRecords.map(record =>
+        record._id === id ? { ...record, status: currentStatus } : record
       );
+      setDueRecords(revertedRecords);
+      localStorage.setItem("dueRecords", JSON.stringify(revertedRecords));
     }
   };
 
+  // 🔹 Format date
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return "N/A";
     const date = new Date(dateStr);
@@ -67,6 +83,7 @@ const DueTracker: React.FC = () => {
     });
   };
 
+  // 🔹 Generate PDF
   const generatePDF = () => {
     const doc = new jsPDF();
     doc.text("📌 Due Records Report", 14, 16);
