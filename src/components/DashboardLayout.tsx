@@ -1,17 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
-import {
-  BookOpen,
-  Users,
-  TrendingDown,
-  Bell,
-  User,
-  LogOut,
-  LayoutDashboard,
-} from "lucide-react";
+import { BookOpen, Users, TrendingDown, Bell, User, LogOut, LayoutDashboard } from "lucide-react";
 import axios from "axios";
 
-// 👇 apna backend API base URL confirm karo
 const API_BASE = "http://localhost:8000";
 
 const DashboardLayout = () => {
@@ -19,16 +10,11 @@ const DashboardLayout = () => {
   const location = useLocation();
   const [hasUnread, setHasUnread] = useState(false);
 
-  // ✅ unread check function
   const checkHasUnreadNotifications = async () => {
     try {
       const res = await axios.get(`${API_BASE}/api/notifications/unread`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
-
-      // Backend should return { unread: true/false, count: number }
       setHasUnread(res.data.unread === true || res.data.count > 0);
     } catch (err) {
       console.error("Notification check failed:", err);
@@ -38,8 +24,6 @@ const DashboardLayout = () => {
 
   useEffect(() => {
     checkHasUnreadNotifications();
-
-    // 🔄 Poll every 10s
     const interval = setInterval(checkHasUnreadNotifications, 10000);
     return () => clearInterval(interval);
   }, []);
@@ -60,64 +44,53 @@ const DashboardLayout = () => {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-blue-50 to-gray-50 font-sans antialiased">
-      {/* Sidebar */}
       <aside className="w-64 bg-white shadow-xl border-r border-blue-100 py-6 flex flex-col z-20">
-        <div className="px-6 pb-8 text-3xl font-extrabold text-blue-700 tracking-tight">
-          Record Book
-        </div>
+        <div className="px-6 pb-8 text-3xl font-extrabold text-blue-700 tracking-tight">Record Book</div>
         <nav className="space-y-2 px-4 flex-grow">
           {links.map((link) => {
             const isActive =
               location.pathname === `/dashboard/${link.path}` ||
               (link.path === "" && location.pathname === "/dashboard");
-
             return (
               <NavLink
                 key={link.path || "dashboard-root"}
                 to={`/dashboard/${link.path}`}
-                className={`flex items-center space-x-4 p-3.5 rounded-xl text-base transition-all duration-250 ease-in-out transform
-                  ${
-                    isActive
-                      ? "bg-blue-600 text-white shadow-lg scale-[1.02] font-semibold"
-                      : "text-gray-700 hover:bg-blue-50 hover:text-blue-700 hover:shadow-md"
-                  }
-                  group focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75`}
+                className={`flex items-center space-x-4 p-3.5 rounded-xl text-base transition-all duration-250 ease-in-out transform ${
+                  isActive
+                    ? "bg-blue-600 text-white shadow-lg scale-[1.02] font-semibold"
+                    : "text-gray-700 hover:bg-blue-50 hover:text-blue-700 hover:shadow-md"
+                } group focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75`}
               >
                 <link.icon
                   className={`w-6 h-6 ${
-                    isActive
-                      ? "text-white"
-                      : "text-blue-500 group-hover:text-blue-700"
+                    isActive ? "text-white" : "text-blue-500 group-hover:text-blue-700"
                   } transition-colors duration-250`}
                 />
                 <span className="font-medium">{link.name}</span>
+                {link.name === "Notifications" && hasUnread && (
+                  <span className="absolute top-3 right-3 w-3 h-3 bg-red-500 rounded-full border-2 border-white shadow-sm" />
+                )}
               </NavLink>
             );
           })}
         </nav>
-
         <div className="px-6 pt-4 mt-auto border-t border-gray-100 text-gray-500 text-xs text-center">
           <p>&copy; 2025 Record Book. All rights reserved.</p>
           <p className="mt-1">Version 1.0.0</p>
         </div>
       </aside>
 
-      {/* Main Content Area */}
       <div className="flex-1 flex flex-col relative z-10">
-        {/* Topbar */}
         <header className="flex justify-between items-center bg-white px-10 py-5 border-b border-gray-100 shadow-md">
           <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
           <div className="flex items-center space-x-6">
-            {/* 🔔 Notification bell with red dot */}
             <NavLink
               to="/dashboard/notifications"
               className="relative text-gray-500 hover:text-blue-600 transition-colors duration-200 p-2 rounded-full hover:bg-gray-100"
               title="Notifications"
             >
               <Bell className="w-6 h-6" />
-              {hasUnread && (
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white shadow-sm" />
-              )}
+              {hasUnread && <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white shadow-sm" />}
             </NavLink>
 
             <NavLink
@@ -138,7 +111,6 @@ const DashboardLayout = () => {
           </div>
         </header>
 
-        {/* Page Content */}
         <main className="flex-1 p-8 bg-gray-100 overflow-auto">
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-200 min-h-[calc(100vh-180px)]">
             <Outlet />

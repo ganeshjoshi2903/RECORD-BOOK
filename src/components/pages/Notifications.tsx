@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Bell, Trash2, CheckCircle, Volume2, VolumeX, AlertCircle, Loader2 } from "lucide-react";
+import { Trash2, CheckCircle, Volume2, VolumeX, AlertCircle, Loader2 } from "lucide-react";
 import { createPortal } from "react-dom";
 
 interface Notification {
@@ -9,7 +9,6 @@ interface Notification {
   type: string;
   date: string;
   isRead: boolean;
-  isMuted?: boolean;
 }
 
 interface ToastMessage {
@@ -25,7 +24,6 @@ export default function Notifications() {
 
   const API_BASE = "http://localhost:8000";
   const token = localStorage.getItem("token");
-
   const axiosConfig = { headers: { Authorization: `Bearer ${token}` } };
 
   const showToast = (message: ToastMessage) => {
@@ -33,18 +31,52 @@ export default function Notifications() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = async (markAllRead = false) => {
     try {
       const res = await axios.get(`${API_BASE}/api/notifications`, axiosConfig);
-      setNotifications(res.data);
-      const remindersMuted = res.data.some((n: Notification) => n.type === "reminder" && n.isMuted);
-      setMuted(remindersMuted);
-      showToast({ type: "success", text: "Notifications loaded." });
-    } catch (err) {
-      console.error("❌ Failed to load notifications:", err);
+      let data = res.data;
+      setNotifications(data);
+
+      if (markAllRead) {
+        // 🔹 Mark all as read automatically when user opens page
+        const unreadIds = data.filter((n: Notification) => !n.isRead).map((n: Notification) => n._id);
+        await Promise.all(unreadIds.map((id) => axios.patch(`${API_BASE}/api/notifications/${id}/read`, {}, axiosConfig)));
+        setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      }
+    } catch {
       showToast({ type: "error", text: "Failed to load notifications." });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchMuteState = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/api/notifications/mute/reminders`, axiosConfig);
+      setMuted(res.data.muted);
+    } catch {
+      showToast({ type: "error", text: "Failed to fetch mute state." });
+    }
+  };
+
+  const toggleGlobalMute = async () => {
+    try {
+      const newMute = !muted;
+      await axios.patch(`${API_BASE}/api/notifications/mute/reminders`, { mute: newMute }, axiosConfig);
+      setMuted(newMute);
+      showToast({ type: "success", text: `Reminders ${newMute ? "muted" : "unmuted"}.` });
+      fetchNotifications(); // Refetch after mute
+    } catch {
+      showToast({ type: "error", text: "Failed to toggle mute." });
+    }
+  };
+
+  const markAsRead = async (id: string) => {
+    try {
+      await axios.patch(`${API_BASE}/api/notifications/${id}/read`, {}, axiosConfig);
+      setNotifications((prev) => prev.map((n) => (n._id === id ? { ...n, isRead: true } : n)));
+    } catch {
+      showToast({ type: "error", text: "Failed to mark as read." });
     }
   };
 
@@ -53,45 +85,15 @@ export default function Notifications() {
       await axios.delete(`${API_BASE}/api/notifications/${id}`, axiosConfig);
       setNotifications((prev) => prev.filter((n) => n._id !== id));
       showToast({ type: "success", text: "Notification deleted." });
-    } catch (err) {
-      console.error("❌ Failed to delete notification:", err);
+    } catch {
       showToast({ type: "error", text: "Failed to delete notification." });
-    }
-  };
-
-  const markAsRead = async (id: string) => {
-    try {
-      await axios.patch(`${API_BASE}/api/notifications/${id}/read`, {}, axiosConfig);
-      setNotifications((prev) =>
-        prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
-      );
-      showToast({ type: "success", text: "Marked as read." });
-    } catch (err) {
-      console.error("❌ Failed to mark as read:", err);
-      showToast({ type: "error", text: "Failed to mark as read." });
-    }
-  };
-
-  const toggleGlobalMute = async () => {
-    try {
-      const newMute = !muted;
-      await axios.patch(
-        `${API_BASE}/api/notifications/mute/reminders`,
-        { mute: newMute },
-        axiosConfig
-      );
-      setMuted(newMute);
-      fetchNotifications();
-      showToast({ type: "success", text: `Reminders ${newMute ? "muted" : "unmuted"}.` });
-    } catch (err) {
-      console.error("❌ Failed to toggle mute:", err);
-      showToast({ type: "error", text: "Failed to toggle mute." });
     }
   };
 
   useEffect(() => {
     if (token) {
-      fetchNotifications();
+      fetchNotifications(true); // mark all read automatically when page loads
+      fetchMuteState();
     } else {
       setLoading(false);
       showToast({ type: "error", text: "Authentication token not found." });
@@ -109,35 +111,13 @@ export default function Notifications() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-white py-12 px-4 font-sans text-gray-800">
-      <style>
-        {`
-          @keyframes slide-in-up {
-            from { opacity: 0; transform: translateY(100px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-          .animate-slide-in-up { animation: slide-in-up 0.5s ease-out forwards; }
-          
-          @keyframes fade-in {
-            from { opacity: 0; }
-            to { opacity: 1; }
-          }
-          .animate-fade-in { animation: fade-in 0.3s ease-out forwards; }
-        `}
-      </style>
-
-      <div className="max-w-xl mx-auto p-8 rounded-3xl shadow-xl bg-white bg-opacity-95 backdrop-filter backdrop-blur-lg transform transition-all duration-500 animate-fade-in">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6 border-b pb-4 border-gray-200">
-          <div className="flex items-center gap-3">
-            <Bell className="w-8 h-8 text-indigo-600" />
-            <h1 className="text-3xl font-bold text-gray-800">Notifications</h1>
-          </div>
+      <div className="max-w-xl mx-auto p-8 rounded-3xl shadow-xl bg-white">
+        <div className="flex justify-between items-center mb-6 border-b pb-4">
+          <h1 className="text-3xl font-bold flex items-center gap-2">Notifications</h1>
           <button
             onClick={toggleGlobalMute}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 transform hover:scale-105 active:scale-95 ${
-              muted
-                ? "bg-red-50 text-red-600 hover:bg-red-100"
-                : "bg-green-50 text-green-600 hover:bg-green-100"
+            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              muted ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-green-50 text-green-600 hover:bg-green-100"
             }`}
           >
             {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
@@ -145,70 +125,56 @@ export default function Notifications() {
           </button>
         </div>
 
-        {/* Notification List */}
         {notifications.length === 0 ? (
-          <p className="text-gray-500 text-center py-10 flex items-center justify-center gap-2">
-            No notifications yet 🎉
-          </p>
+          <p className="text-gray-500 text-center py-10">No notifications yet 🎉</p>
         ) : (
           <ul className="space-y-4">
-            {notifications
-              .filter((n) => !(muted && n.type === "reminder"))
-              .map((n) => (
-                <li
-                  key={n._id}
-                  className={`p-4 rounded-xl shadow-md border-l-4 transition-all duration-300 hover:shadow-lg
-                    ${n.isRead ? "bg-gray-50 border-gray-300" : "bg-white border-indigo-500"}
-                    ${n.type === "reminder" && !n.isRead ? "bg-yellow-50 border-yellow-500" : ""}
-                  `}
-                >
-                  <div className="flex justify-between items-center">
-                    <div className="flex-1 pr-4">
-                      <p className={`font-medium ${n.isRead ? "text-gray-500" : "text-gray-800"}`}>
-                        {n.message}
-                      </p>
-                      <small className="text-gray-400 text-xs">
-                        {new Date(n.date).toLocaleString()}
-                      </small>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      {!n.isRead && (
-                        <span className="px-2 py-1 text-xs rounded-full font-semibold bg-red-100 text-red-600">
-                          NEW
-                        </span>
-                      )}
-                      <button
-                        onClick={() => markAsRead(n._id)}
-                        className="p-2 rounded-full hover:bg-green-100 text-green-600 transition"
-                      >
-                        <CheckCircle size={18} />
-                      </button>
-                      <button
-                        onClick={() => deleteNotification(n._id)}
-                        className="p-2 rounded-full hover:bg-red-100 text-red-600 transition"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
+            {notifications.map((n) => (
+              <li
+                key={n._id}
+                className={`p-4 rounded-xl shadow-md border-l-4 ${
+                  n.isRead ? "bg-gray-50 border-gray-300" : "bg-white border-indigo-500"
+                }`}
+              >
+                <div className="flex justify-between items-center">
+                  <div className="flex-1 pr-4">
+                    <p className={`font-medium ${n.isRead ? "text-gray-500" : "text-gray-800"}`}>
+                      {n.message}
+                    </p>
+                    <small className="text-gray-400 text-xs">{new Date(n.date).toLocaleString()}</small>
                   </div>
-                </li>
-              ))}
+                  <div className="flex items-center gap-2">
+                    {!n.isRead && (
+                      <span className="px-2 py-1 text-xs rounded-full font-semibold bg-red-100 text-red-600">
+                        NEW
+                      </span>
+                    )}
+                    <button onClick={() => markAsRead(n._id)} className="p-2 rounded-full hover:bg-green-100 text-green-600">
+                      <CheckCircle size={18} />
+                    </button>
+                    <button onClick={() => deleteNotification(n._id)} className="p-2 rounded-full hover:bg-red-100 text-red-600">
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </div>
+              </li>
+            ))}
           </ul>
         )}
       </div>
 
-      {toast && createPortal(
-        <div
-          className={`fixed bottom-6 left-1/2 -translate-x-1/2 text-white px-5 py-2 rounded-full shadow-lg text-sm flex items-center gap-2 z-50 transition-all duration-300 animate-slide-in-up ${
-            toast.type === "success" ? "bg-green-500" : "bg-red-500"
-          }`}
-        >
-          {toast.type === "success" ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
-          {toast.text}
-        </div>,
-        document.body
-      )}
+      {toast &&
+        createPortal(
+          <div
+            className={`fixed bottom-6 left-1/2 -translate-x-1/2 text-white px-5 py-2 rounded-full shadow-lg text-sm flex items-center gap-2 z-50 ${
+              toast.type === "success" ? "bg-green-500" : "bg-red-500"
+            }`}
+          >
+            {toast.type === "success" ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+            {toast.text}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
