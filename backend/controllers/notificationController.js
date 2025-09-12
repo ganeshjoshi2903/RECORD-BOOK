@@ -1,6 +1,5 @@
 import Notification from "../models/notification.js";
 
-// Get all notifications for logged-in user
 export const getUserNotifications = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -12,7 +11,6 @@ export const getUserNotifications = async (req, res) => {
   }
 };
 
-// Create a new notification
 export const createNotification = async (req, res) => {
   const { title, message, type } = req.body;
   const userId = req.user.id;
@@ -27,7 +25,6 @@ export const createNotification = async (req, res) => {
   }
 };
 
-// Delete a notification
 export const deleteNotification = async (req, res) => {
   try {
     const { id } = req.params;
@@ -44,7 +41,6 @@ export const deleteNotification = async (req, res) => {
   }
 };
 
-// Mark as read
 export const markAsReadNotification = async (req, res) => {
   try {
     const { id } = req.params;
@@ -62,7 +58,6 @@ export const markAsReadNotification = async (req, res) => {
   }
 };
 
-// Mute/Unmute notification
 export const toggleMuteNotification = async (req, res) => {
   try {
     const { id } = req.params;
