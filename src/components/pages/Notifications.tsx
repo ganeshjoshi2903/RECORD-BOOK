@@ -40,7 +40,7 @@ export default function Notifications() {
 
   const fetchNotifications = async (markAllRead = false) => {
     try {
-      const res = await axios.get(`${API_BASE}/api/notifications`, axiosConfig);
+      const res = await axios.get(`${API_URL}/api/notifications`, axiosConfig);
       let data: Notification[] = res.data;
 
       if (muted) data = data.filter((n) => n.type !== "reminder");
@@ -54,7 +54,7 @@ export default function Notifications() {
 
         await Promise.all(
           unreadIds.map((id) =>
-            axios.patch(`${API_BASE}/api/notifications/${id}/read`, {}, axiosConfig)
+            axios.patch(`${API_URL}/api/notifications/${id}/read`, {}, axiosConfig)
           )
         );
 
@@ -71,7 +71,7 @@ export default function Notifications() {
 
   const fetchMuteState = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/api/mute/reminder`, axiosConfig);
+      const res = await axios.get(`${API_URL}/api/mute/reminder`, axiosConfig);
       setMuted(res.data.muted);
     } catch {
       showToast({ type: "error", text: "Failed to fetch mute state." });
@@ -82,7 +82,7 @@ export default function Notifications() {
     try {
       const newMute = !muted;
       await axios.patch(
-        `${API_BASE}/api/mute/reminder`,
+        `${API_URL}/api/mute/reminder`,
         { mute: newMute },
         axiosConfig
       );
@@ -99,7 +99,7 @@ export default function Notifications() {
 
   const markAsRead = async (id: string) => {
     try {
-      await axios.patch(`${API_BASE}/api/notifications/${id}/read`, {}, axiosConfig);
+      await axios.patch(`${API_URL}/api/notifications/${id}/read`, {}, axiosConfig);
       setNotifications((prev) =>
         prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
       );
@@ -110,7 +110,7 @@ export default function Notifications() {
 
   const deleteNotification = async (id: string) => {
     try {
-      await axios.delete(`${API_BASE}/api/notifications/${id}`, axiosConfig);
+      await axios.delete(`${API_URL}/api/notifications/${id}`, axiosConfig);
       setNotifications((prev) => prev.filter((n) => n._id !== id));
       showToast({ type: "success", text: "Notification deleted." });
     } catch {
