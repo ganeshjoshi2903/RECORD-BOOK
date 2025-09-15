@@ -73,9 +73,6 @@ export const createRecord = async (req, res) => {
   }
 };
 
-/**
- * ✅ Get all records
- */
 export const getRecords = async (req, res) => {
   try {
     const records = await DigitalRecord.find().sort({ date: -1 });

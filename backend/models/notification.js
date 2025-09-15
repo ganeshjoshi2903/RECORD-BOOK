@@ -8,7 +8,6 @@ const notificationSchema = new mongoose.Schema({
     required: true,
   },
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: false },
-
   date: { type: Date, default: Date.now },
   isRead: { type: Boolean, default: false },
   isMuted: { type: Boolean, default: false },

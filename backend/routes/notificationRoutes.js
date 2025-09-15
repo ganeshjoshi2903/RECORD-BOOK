@@ -1,34 +1,34 @@
-// 📂 backend/routes/notificationRoutes.js
 import express from "express";
 import Notification from "../models/notification.js";
-import MuteSetting from "../models/mutesettings.js"; // Ensure filename matches exactly
+import MuteSetting from "../models/muteSetting.js";
 
 const router = express.Router();
 
 /**
- * Helper: build filter based on authentication (if you have req.user)
+ * 🔹 Helper: Build filter with user context
  */
 function buildUserFilter(req, extra = {}) {
-  if (req.user && req.user._id) {
-    return { user: req.user._id, ...extra };
+  if (req.user && (req.user._id || req.user.id)) {
+    const uid = req.user._id ?? req.user.id;
+    return { user: uid, ...extra };
   }
   return { ...extra };
 }
 
 /**
- * @route   GET /api/notifications
- * @desc    Get all notifications (checks mute state)
+ * 🔹 GET /api/notifications
+ * Fetch all notifications (exclude reminders if muted)
  */
 router.get("/", async (req, res) => {
   try {
     const filter = buildUserFilter(req);
 
-    // Check mute state
+    // Check mute setting
     const muteSetting = await MuteSetting.findOne({ key: "reminder" });
     const isMuted = muteSetting?.isMuted ?? false;
 
     if (isMuted) {
-      filter.type = { $ne: "reminder" };
+      filter.type = { $ne: "reminder" }; // exclude reminders
     }
 
     const notifications = await Notification.find(filter)
@@ -45,8 +45,8 @@ router.get("/", async (req, res) => {
 });
 
 /**
- * @route   GET /api/notifications/unread
- * @desc    Check unread notifications count
+ * 🔹 GET /api/notifications/unread
+ * Count unread
  */
 router.get("/unread", async (req, res) => {
   try {
@@ -62,20 +62,23 @@ router.get("/unread", async (req, res) => {
 });
 
 /**
- * @route   POST /api/notifications
- * @desc    Create new notification (checks mute state for reminders)
+ * 🔹 POST /api/notifications
+ * Create notification (skip reminder if muted)
  */
 router.post("/", async (req, res) => {
   try {
-    const { message, type, user } = req.body;
+    const { message, type } = req.body;
+    const user =
+      req.user && (req.user._id ?? req.user.id)
+        ? req.user._id ?? req.user.id
+        : req.body.user;
 
-    // Only allow reminder notifications if not muted
     if (type === "reminder") {
       const setting = await MuteSetting.findOne({ key: "reminder" });
       if (setting?.isMuted) {
         return res.status(200).json({
           success: false,
-          message: "Reminder notifications are muted",
+          message: "Reminder notifications are muted.",
         });
       }
     }
@@ -92,8 +95,7 @@ router.post("/", async (req, res) => {
 });
 
 /**
- * @route   PATCH /api/notifications/:id/read
- * @desc    Mark a single notification as read
+ * 🔹 PATCH /api/notifications/:id/read
  */
 router.patch("/:id/read", async (req, res) => {
   try {
@@ -102,6 +104,8 @@ router.patch("/:id/read", async (req, res) => {
       { isRead: true },
       { new: true }
     );
+    if (!updated)
+      return res.status(404).json({ message: "Notification not found" });
     res.json(updated);
   } catch (error) {
     res.status(500).json({
@@ -112,13 +116,14 @@ router.patch("/:id/read", async (req, res) => {
 });
 
 /**
- * @route   PATCH /api/notifications/read-all
- * @desc    Mark all notifications as read
+ * 🔹 PATCH /api/notifications/read-all
  */
 router.patch("/read-all", async (req, res) => {
   try {
     const filter = buildUserFilter(req, { isRead: false });
-    const result = await Notification.updateMany(filter, { $set: { isRead: true } });
+    const result = await Notification.updateMany(filter, {
+      $set: { isRead: true },
+    });
     const modified = result.modifiedCount ?? result.nModified ?? 0;
     res.json({ success: true, modifiedCount: modified });
   } catch (error) {
@@ -130,8 +135,7 @@ router.patch("/read-all", async (req, res) => {
 });
 
 /**
- * @route   GET /api/notifications/mute/reminders
- * @desc    Get current mute state
+ * 🔹 GET /api/notifications/mute/reminders
  */
 router.get("/mute/reminders", async (req, res) => {
   try {
@@ -150,18 +154,24 @@ router.get("/mute/reminders", async (req, res) => {
 });
 
 /**
- * @route   PATCH /api/notifications/mute/reminders
- * @desc    Toggle mute state for reminders
+ * 🔹 PATCH /api/notifications/mute/reminders
+ * Body: { mute: boolean }
  */
 router.patch("/mute/reminders", async (req, res) => {
   try {
     const { mute } = req.body;
-    let setting = await MuteSetting.findOneAndUpdate(
+    const setting = await MuteSetting.findOneAndUpdate(
       { key: "reminder" },
       { isMuted: Boolean(mute) },
       { new: true, upsert: true }
     );
-    res.json({ success: true, muted: setting.isMuted });
+    res.json({
+      success: true,
+      muted: setting.isMuted,
+      message: setting.isMuted
+        ? "Reminder notifications muted."
+        : "Reminder notifications unmuted.",
+    });
   } catch (error) {
     res.status(500).json({
       message: "Error updating mute state",
@@ -171,12 +181,13 @@ router.patch("/mute/reminders", async (req, res) => {
 });
 
 /**
- * @route   DELETE /api/notifications/:id
- * @desc    Delete a notification
+ * 🔹 DELETE /api/notifications/:id
  */
 router.delete("/:id", async (req, res) => {
   try {
-    await Notification.findByIdAndDelete(req.params.id);
+    const removed = await Notification.findByIdAndDelete(req.params.id);
+    if (!removed)
+      return res.status(404).json({ message: "Notification not found" });
     res.json({ message: "Notification deleted successfully" });
   } catch (error) {
     res.status(500).json({

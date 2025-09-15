@@ -13,4 +13,4 @@ router.get("/me", verifyToken, getUserProfile);
 router.post("/forgot-password", sendResetLink);
 router.post("/reset-password/:token", resetPassword);
 
-export default router;
+export default router; 

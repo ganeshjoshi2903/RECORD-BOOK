@@ -12,16 +12,18 @@ import customerRoutes from "./routes/customerRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import profileRoutes from "./routes/profileroutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import muteRoutes from "./routes/muteroutes.js"; // Optional route for mute toggle
 
-// Models for cron
+// Models
 import DigitalRecord from "./models/DigitalRecord.js";
 import Notification from "./models/notification.js";
+import MuteSetting from "./models/muteSetting.js";
 
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-// ✅ Middleware
+// 🔹 Middleware
 app.use(
   cors({
     origin: ["http://localhost:5173", "https://recordbook-3map.onrender.com"],
@@ -31,20 +33,27 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ Routes
+// 🔹 Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/records", recordRoutes);
 app.use("/api/customers", customerRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/mute", muteRoutes); // optional
 
-// ✅ Root
+// 🔹 Root
 app.get("/", (req, res) => res.send("✅ RecordBook Backend is Live!"));
 
-// ✅ Cron Job: run daily at 00:00 (midnight) to create due reminders
+// 🔹 Cron job: run daily at midnight for reminders
 cron.schedule("0 0 * * *", async () => {
   try {
+    const muteSetting = await MuteSetting.findOne({ key: "reminder" });
+    if (muteSetting?.isMuted) {
+      console.log("🔕 Reminders muted — skipping cron");
+      return;
+    }
+
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
 
@@ -61,20 +70,16 @@ cron.schedule("0 0 * * *", async () => {
     });
 
     for (const due of dues) {
-      // Check if reminder already exists
-      const exists = await Notification.findOne({
-        message: `Reminder: Due of ₹${due.amount} is tomorrow (${new Date(
-          due.dueDate
-        ).toDateString()})`,
-        type: "reminder",
-      });
+      const msg = `Reminder: Due of ₹${due.amount} is tomorrow (${new Date(
+        due.dueDate
+      ).toDateString()})`;
 
+      const exists = await Notification.findOne({ message: msg, type: "reminder" });
       if (!exists) {
         await Notification.create({
-          message: `Reminder: Due of ₹${due.amount} is tomorrow (${new Date(
-            due.dueDate
-          ).toDateString()})`,
+          message: msg,
           type: "reminder",
+          user: due.user ?? undefined,
         });
         console.log(`🔔 Reminder created for ₹${due.amount}`);
       }
@@ -88,9 +93,9 @@ cron.schedule("0 0 * * *", async () => {
   }
 });
 
-// ✅ Connect DB + Start server
+// 🔹 Connect DB + start server
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
     console.log("✅ MongoDB connected successfully");
     app.listen(PORT, () =>

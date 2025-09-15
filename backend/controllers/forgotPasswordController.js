@@ -10,10 +10,8 @@ export const sendResetLink = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Generate secure token
     const resetToken = crypto.randomBytes(32).toString("hex");
 
-    // Save token + expiry in DB
     user.resetPasswordToken = resetToken;
     user.resetPasswordExpire = Date.now() + 15 * 60 * 1000; // 15 mins
     await user.save();
@@ -21,7 +19,6 @@ export const sendResetLink = async (req, res) => {
     const resetURL = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
     console.log("🔗 Reset URL:", resetURL);
 
-    // Send mail
     await transporter.sendMail({
       from: `"RecordBook App" <${process.env.EMAIL_USER}>`,
       to: user.email,
