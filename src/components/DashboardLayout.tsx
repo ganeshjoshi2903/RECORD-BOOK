@@ -3,7 +3,7 @@ import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { BookOpen, Users, TrendingDown, Bell, User, LogOut, LayoutDashboard } from "lucide-react";
 import axios from "axios";
 
-const API_BASE = "http://localhost:8000";
+const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 const DashboardLayout = () => {
   const navigate = useNavigate();
@@ -12,7 +12,7 @@ const DashboardLayout = () => {
 
   const checkHasUnreadNotifications = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/api/notifications/unread`, {
+      const res = await axios.get(`${API_URL}/api/notifications/unread`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       setHasUnread(res.data.unread === true || res.data.count > 0);

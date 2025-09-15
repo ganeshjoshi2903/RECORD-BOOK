@@ -1,5 +1,5 @@
 // src/components/pages/EditProfile.tsx
-
+import.meta.env.VITE_BACKEND_URL;
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -9,7 +9,7 @@ const EditProfile = () => {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_BACKEND_URL;
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -43,7 +43,7 @@ const API_URL = import.meta.env.VITE_API_URL;
     try {
       const token = localStorage.getItem("token");
       const res = await axios.put(
-        "http://localhost:8000/api/profile/update",
+        `${API_URL}/api/profile/update`,
         form,
         {
           headers: { Authorization: `Bearer ${token}` },
