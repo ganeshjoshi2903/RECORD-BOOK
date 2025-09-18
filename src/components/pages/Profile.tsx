@@ -46,7 +46,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const API_URL = import.meta.env.VITE_BACKEND_URL;
+ const API_URL = import.meta.env.VITE_API_URL;
   const token = typeof localStorage !== "undefined" ? localStorage.getItem("token") : null;
 
   const fetchProfile = async () => {
@@ -352,3 +352,4 @@ const Profile = () => {
 };
 
 export default Profile;
+
