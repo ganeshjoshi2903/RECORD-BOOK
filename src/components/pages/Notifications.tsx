@@ -29,9 +29,18 @@ export default function Notifications() {
   const [muted, setMuted] = useState(false);
   const [toast, setToast] = useState<ToastMessage | null>(null);
 
-  const API_URL = import.meta.env.VITE_BACKEND_URL;
-  const token = localStorage.getItem("token");
-  const axiosConfig = { headers: { Authorization: `Bearer ${token}` } };
+  // ✅ Use API base (works in localhost + Render)
+  const API_URL =
+    import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
+
+  // ✅ Get token safely
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+  // ✅ Axios config (include token if available)
+  const axiosConfig = token
+    ? { headers: { Authorization: `Bearer ${token}` } }
+    : {};
 
   const showToast = (message: ToastMessage) => {
     setToast(message);
@@ -43,24 +52,28 @@ export default function Notifications() {
       const res = await axios.get(`${API_URL}/api/notifications`, axiosConfig);
       let data: Notification[] = res.data;
 
-      if (muted) data = data.filter((n) => n.type !== "reminder");
+      if (muted) {
+        data = data.filter((n) => n.type !== "reminder");
+      }
 
       setNotifications(data);
 
       if (markAllRead && data.length > 0) {
         const unreadIds = data
-          .filter((n: Notification) => !n.isRead)
-          .map((n: Notification) => n._id);
+          .filter((n) => !n.isRead)
+          .map((n) => n._id);
 
-        await Promise.all(
-          unreadIds.map((id) =>
-            axios.patch(`${API_URL}/api/notifications/${id}/read`, {}, axiosConfig)
-          )
-        );
+        if (unreadIds.length > 0) {
+          await Promise.all(
+            unreadIds.map((id) =>
+              axios.patch(`${API_URL}/api/notifications/${id}/read`, {}, axiosConfig)
+            )
+          );
 
-        setNotifications((prev) =>
-          prev.map((n) => ({ ...n, isRead: true }))
-        );
+          setNotifications((prev) =>
+            prev.map((n) => ({ ...n, isRead: true }))
+          );
+        }
       }
     } catch {
       showToast({ type: "error", text: "Failed to load notifications." });
