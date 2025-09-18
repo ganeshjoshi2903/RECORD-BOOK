@@ -12,7 +12,7 @@ import customerRoutes from "./routes/customerRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import profileRoutes from "./routes/profileroutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
-import muteRoutes from "./routes/muteroutes.js"; // Optional route for mute toggle
+import muteRoutes from "./routes/muteroutes.js";
 
 // Models
 import DigitalRecord from "./models/DigitalRecord.js";
@@ -25,24 +25,21 @@ const PORT = process.env.PORT || 8000;
 
 // ✅ Allowed Origins
 const allowedOrigins = [
-  "http://localhost:5173",
-  "https://recordbook-frontend.onrender.com", // frontend Render URL
+  "http://localhost:5173", // local dev
+  "https://recordbook-frontend.onrender.com", // your live frontend
 ];
 
 // 🔹 Middleware
-app.use(
-  cors({
-    origin: allowedOrigins,
-    credentials: true,
-  })
-);
-
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
 app.options("*", cors()); // Preflight fix
 
 app.use(express.json());
 app.use(cookieParser());
 
-// 🔹 Routes (make sure these exist and export a Router, not empty string)
+// 🔹 Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/records", recordRoutes);
 app.use("/api/customers", customerRoutes);
@@ -70,7 +67,6 @@ cron.schedule("0 0 * * *", async () => {
 
     const startOfDay = new Date(tomorrow);
     startOfDay.setHours(0, 0, 0, 0);
-
     const endOfDay = new Date(tomorrow);
     endOfDay.setHours(23, 59, 59, 999);
 
