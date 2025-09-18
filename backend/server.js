@@ -23,10 +23,10 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-// ✅ Allowed Origins (local + deployed frontend)
+// ✅ Allowed Origins
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://recordbook-frontend.onrender.com", // your Render frontend URL
+  "https://recordbook-frontend.onrender.com", // frontend Render URL
 ];
 
 // 🔹 Middleware
@@ -37,25 +37,26 @@ app.use(
   })
 );
 
-// Handle Preflight (OPTIONS) requests
-app.options("*", cors());
+app.options("*", cors()); // Preflight fix
 
 app.use(express.json());
 app.use(cookieParser());
 
-// 🔹 Routes
+// 🔹 Routes (make sure these exist and export a Router, not empty string)
 app.use("/api/auth", authRoutes);
 app.use("/api/records", recordRoutes);
 app.use("/api/customers", customerRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/notifications", notificationRoutes);
-app.use("/api/mute", muteRoutes); // optional
+app.use("/api/mute", muteRoutes);
 
-// 🔹 Root
-app.get("/", (req, res) => res.send("✅ RecordBook Backend is Live!"));
+// 🔹 Root Route
+app.get("/", (req, res) => {
+  res.send("✅ RecordBook Backend is Live!");
+});
 
-// 🔹 Cron job: run daily at midnight for reminders
+// 🔹 Cron job: daily reminders
 cron.schedule("0 0 * * *", async () => {
   try {
     const muteSetting = await MuteSetting.findOne({ key: "reminder" });
@@ -103,12 +104,15 @@ cron.schedule("0 0 * * *", async () => {
   }
 });
 
-// 🔹 Connect DB + start server
+// 🔹 MongoDB + Start Server
 mongoose
-  .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => {
     console.log("✅ MongoDB connected successfully");
-    app.listen(PORT, () =>
+    app.listen(PORT, "0.0.0.0", () =>
       console.log(`🚀 Server running at http://localhost:${PORT}`)
     );
   })
