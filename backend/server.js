@@ -23,19 +23,21 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-// ✅ Allowed Origins
+// ✅ Allowed Frontend URLs
 const allowedOrigins = [
-  "http://localhost:5173", // local dev
-  "https://recordbook-frontend.onrender.com", // your live frontend
+  "http://localhost:5173",
+  "https://recordbook-frontend.onrender.com",
 ];
 
 // 🔹 Middleware
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,
-}));
-app.options("*", cors()); // Preflight fix
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  })
+);
 
+app.options("*", cors()); // Preflight fix
 app.use(express.json());
 app.use(cookieParser());
 
@@ -48,12 +50,10 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/mute", muteRoutes);
 
-// 🔹 Root Route
-app.get("/", (req, res) => {
-  res.send("✅ RecordBook Backend is Live!");
-});
+// 🔹 Root
+app.get("/", (req, res) => res.send("✅ RecordBook Backend is Live!"));
 
-// 🔹 Cron job: daily reminders
+// 🔹 Cron job: daily reminders at midnight
 cron.schedule("0 0 * * *", async () => {
   try {
     const muteSetting = await MuteSetting.findOne({ key: "reminder" });
@@ -67,6 +67,7 @@ cron.schedule("0 0 * * *", async () => {
 
     const startOfDay = new Date(tomorrow);
     startOfDay.setHours(0, 0, 0, 0);
+
     const endOfDay = new Date(tomorrow);
     endOfDay.setHours(23, 59, 59, 999);
 
@@ -100,7 +101,7 @@ cron.schedule("0 0 * * *", async () => {
   }
 });
 
-// 🔹 MongoDB + Start Server
+// 🔹 MongoDB connection + server start
 mongoose
   .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
