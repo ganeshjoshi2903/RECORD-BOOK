@@ -23,13 +23,23 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8000;
 
+// ✅ Allowed Origins (local + deployed frontend)
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://recordbook-frontend.onrender.com", // your Render frontend URL
+];
+
 // 🔹 Middleware
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://recordbook-3map.onrender.com"],
+    origin: allowedOrigins,
     credentials: true,
   })
 );
+
+// Handle Preflight (OPTIONS) requests
+app.options("*", cors());
+
 app.use(express.json());
 app.use(cookieParser());
 
