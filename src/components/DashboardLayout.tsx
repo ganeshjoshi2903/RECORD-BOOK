@@ -10,7 +10,7 @@ import {
   LogOut,
   LayoutDashboard,
 } from "lucide-react";
-import api from "../../api.ts"; // ✅ Explicit .ts extension for Vite production
+import api from "../../api";
 
 const DashboardLayout = () => {
   const navigate = useNavigate();
@@ -160,3 +160,4 @@ const DashboardLayout = () => {
 };
 
 export default DashboardLayout;
+
