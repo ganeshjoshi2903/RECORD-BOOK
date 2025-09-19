@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import {
   Trash2,
   CheckCircle,
@@ -9,6 +8,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { createPortal } from "react-dom";
+import api from "../../api"; // ✅ centralized API
 
 interface Notification {
   _id: string;
@@ -29,18 +29,8 @@ export default function Notifications() {
   const [muted, setMuted] = useState(false);
   const [toast, setToast] = useState<ToastMessage | null>(null);
 
-  // ✅ Use API base (works in localhost + Render)
-  const API_URL =
-    import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
-
-  // ✅ Get token safely
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("token") : null;
-
-  // ✅ Axios config (include token if available)
-  const axiosConfig = token
-    ? { headers: { Authorization: `Bearer ${token}` } }
-    : {};
+  const token = localStorage.getItem("token");
+  const axiosConfig = { headers: { Authorization: `Bearer ${token}` } };
 
   const showToast = (message: ToastMessage) => {
     setToast(message);
@@ -49,31 +39,20 @@ export default function Notifications() {
 
   const fetchNotifications = async (markAllRead = false) => {
     try {
-      const res = await axios.get(`${API_URL}/api/notifications`, axiosConfig);
+      const res = await api.get("/api/notifications", axiosConfig);
       let data: Notification[] = res.data;
 
-      if (muted) {
-        data = data.filter((n) => n.type !== "reminder");
-      }
-
+      if (muted) data = data.filter((n) => n.type !== "reminder");
       setNotifications(data);
 
       if (markAllRead && data.length > 0) {
-        const unreadIds = data
-          .filter((n) => !n.isRead)
-          .map((n) => n._id);
-
-        if (unreadIds.length > 0) {
-          await Promise.all(
-            unreadIds.map((id) =>
-              axios.patch(`${API_URL}/api/notifications/${id}/read`, {}, axiosConfig)
-            )
-          );
-
-          setNotifications((prev) =>
-            prev.map((n) => ({ ...n, isRead: true }))
-          );
-        }
+        const unreadIds = data.filter((n) => !n.isRead).map((n) => n._id);
+        await Promise.all(
+          unreadIds.map((id) =>
+            api.patch(`/api/notifications/${id}/read`, {}, axiosConfig)
+          )
+        );
+        setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       }
     } catch {
       showToast({ type: "error", text: "Failed to load notifications." });
@@ -84,7 +63,7 @@ export default function Notifications() {
 
   const fetchMuteState = async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/mute/reminder`, axiosConfig);
+      const res = await api.get("/api/mute/reminder", axiosConfig);
       setMuted(res.data.muted);
     } catch {
       showToast({ type: "error", text: "Failed to fetch mute state." });
@@ -94,11 +73,7 @@ export default function Notifications() {
   const toggleGlobalMute = async () => {
     try {
       const newMute = !muted;
-      await axios.patch(
-        `${API_URL}/api/mute/reminder`,
-        { mute: newMute },
-        axiosConfig
-      );
+      await api.patch("/api/mute/reminder", { mute: newMute }, axiosConfig);
       setMuted(newMute);
       showToast({
         type: "success",
@@ -112,7 +87,7 @@ export default function Notifications() {
 
   const markAsRead = async (id: string) => {
     try {
-      await axios.patch(`${API_URL}/api/notifications/${id}/read`, {}, axiosConfig);
+      await api.patch(`/api/notifications/${id}/read`, {}, axiosConfig);
       setNotifications((prev) =>
         prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
       );
@@ -123,7 +98,7 @@ export default function Notifications() {
 
   const deleteNotification = async (id: string) => {
     try {
-      await axios.delete(`${API_URL}/api/notifications/${id}`, axiosConfig);
+      await api.delete(`/api/notifications/${id}`, axiosConfig);
       setNotifications((prev) => prev.filter((n) => n._id !== id));
       showToast({ type: "success", text: "Notification deleted." });
     } catch {
@@ -181,18 +156,12 @@ export default function Notifications() {
               <li
                 key={n._id}
                 className={`p-4 rounded-xl shadow-md border-l-4 ${
-                  n.isRead
-                    ? "bg-gray-50 border-gray-300"
-                    : "bg-white border-indigo-500"
+                  n.isRead ? "bg-gray-50 border-gray-300" : "bg-white border-indigo-500"
                 }`}
               >
                 <div className="flex justify-between items-center">
                   <div className="flex-1 pr-4">
-                    <p
-                      className={`font-medium ${
-                        n.isRead ? "text-gray-500" : "text-gray-800"
-                      }`}
-                    >
+                    <p className={`font-medium ${n.isRead ? "text-gray-500" : "text-gray-800"}`}>
                       {n.message}
                     </p>
                     <small className="text-gray-400 text-xs">
@@ -233,11 +202,7 @@ export default function Notifications() {
               toast.type === "success" ? "bg-green-500" : "bg-red-500"
             }`}
           >
-            {toast.type === "success" ? (
-              <CheckCircle size={16} />
-            ) : (
-              <AlertCircle size={16} />
-            )}
+            {toast.type === "success" ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
             {toast.text}
           </div>,
           document.body
