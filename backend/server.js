@@ -1,3 +1,4 @@
+// server.js
 import express from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
@@ -12,7 +13,7 @@ import customerRoutes from "./routes/customerRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import profileRoutes from "./routes/profileroutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
-import muteRoutes from "./routes/muteroutes.js"; // Optional
+import muteRoutes from "./routes/muteroutes.js";
 
 // Models
 import DigitalRecord from "./models/DigitalRecord.js";
@@ -23,32 +24,36 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-// 🔹 Simple CORS setup with preflight support
+// ✅ CORS setup for production + local dev
 const allowedOrigins = [
   "http://localhost:5173",
   "https://recordbook-frontend.onrender.com"
 ];
 
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.header("Access-Control-Allow-Origin", origin);
-  }
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-  );
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  res.header("Access-Control-Allow-Credentials", "true");
-  if (req.method === "OPTIONS") return res.sendStatus(200);
-  next();
-});
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true); // allow Postman or server-to-server
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error("CORS policy: Origin not allowed"));
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    credentials: true,
+    allowedHeaders: [
+      "Origin",
+      "X-Requested-With",
+      "Content-Type",
+      "Accept",
+      "Authorization",
+    ],
+  })
+);
 
-// 🔹 Middleware
+// ✅ Middleware
 app.use(express.json());
 app.use(cookieParser());
 
-// 🔹 Routes
+// ✅ Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/records", recordRoutes);
 app.use("/api/customers", customerRoutes);
@@ -57,10 +62,10 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/mute", muteRoutes);
 
-// 🔹 Root
+// ✅ Root route
 app.get("/", (req, res) => res.send("✅ RecordBook Backend is Live!"));
 
-// 🔹 Cron job: run daily at midnight for reminders
+// ✅ Cron job for reminders
 cron.schedule("0 0 * * *", async () => {
   try {
     const muteSetting = await MuteSetting.findOne({ key: "reminder" });
@@ -71,12 +76,8 @@ cron.schedule("0 0 * * *", async () => {
 
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-
-    const startOfDay = new Date(tomorrow);
-    startOfDay.setHours(0, 0, 0, 0);
-
-    const endOfDay = new Date(tomorrow);
-    endOfDay.setHours(23, 59, 59, 999);
+    const startOfDay = new Date(tomorrow.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(tomorrow.setHours(23, 59, 59, 999));
 
     const dues = await DigitalRecord.find({
       type: "Due",
@@ -108,11 +109,13 @@ cron.schedule("0 0 * * *", async () => {
   }
 });
 
-// 🔹 Connect DB + start server
+// ✅ Connect MongoDB & start server
 mongoose
   .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
     console.log("✅ MongoDB connected successfully");
-    app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
+    app.listen(PORT, () =>
+      console.log(`🚀 Server running at http://localhost:${PORT} or on Render`)
+    );
   })
   .catch((err) => console.error("❌ MongoDB connection failed:", err.message));
