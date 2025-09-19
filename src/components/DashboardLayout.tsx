@@ -1,19 +1,30 @@
+// src/components/DashboardLayout.tsx
 import React, { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
-import { BookOpen, Users, TrendingDown, Bell, User, LogOut, LayoutDashboard } from "lucide-react";
-import api from "../../api";
+import {
+  BookOpen,
+  Users,
+  TrendingDown,
+  Bell,
+  User,
+  LogOut,
+  LayoutDashboard,
+} from "lucide-react";
+import api from "../../api.ts"; // ✅ Explicit .ts extension for Vite production
+
 const DashboardLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [hasUnread, setHasUnread] = useState(false);
 
   const token = localStorage.getItem("token");
-  const axiosConfig = { headers: { Authorization: `Bearer ${token}` } };
 
-  // ✅ Check unread notifications
+  // Check unread notifications
   const checkHasUnreadNotifications = async () => {
     try {
-      const res = await api.get("/api/notifications/unread", axiosConfig);
+      const res = await api.get("/api/notifications/unread", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setHasUnread(res.data.unread === true || res.data.count > 0);
     } catch (err) {
       console.error("Notification check failed:", err);
@@ -21,22 +32,26 @@ const DashboardLayout = () => {
     }
   };
 
-  // ✅ Mark all notifications as read when user visits Notifications page
+  // Mark all notifications as read when visiting Notifications page
   const markAllAsRead = async () => {
     try {
-      await api.patch("/api/notifications/read-all", {}, axiosConfig);
+      await api.patch("/api/notifications/read-all", {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setHasUnread(false);
     } catch (err) {
       console.error("Failed to mark notifications as read:", err);
     }
   };
 
+  // Run every 10s to check unread notifications
   useEffect(() => {
     checkHasUnreadNotifications();
     const interval = setInterval(checkHasUnreadNotifications, 10000);
     return () => clearInterval(interval);
   }, []);
 
+  // Clear red dot on Notifications page
   useEffect(() => {
     if (location.pathname === "/dashboard/notifications") {
       markAllAsRead();
@@ -59,8 +74,11 @@ const DashboardLayout = () => {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-blue-50 to-gray-50 font-sans antialiased">
+      {/* Sidebar */}
       <aside className="w-64 bg-white shadow-xl border-r border-blue-100 py-6 flex flex-col z-20">
-        <div className="px-6 pb-8 text-3xl font-extrabold text-blue-700 tracking-tight">Record Book</div>
+        <div className="px-6 pb-8 text-3xl font-extrabold text-blue-700 tracking-tight">
+          Record Book
+        </div>
         <nav className="space-y-2 px-4 flex-grow">
           {links.map((link) => {
             const isActive =
@@ -77,7 +95,11 @@ const DashboardLayout = () => {
                 } group focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75`}
               >
                 <link.icon
-                  className={`w-6 h-6 ${isActive ? "text-white" : "text-blue-500 group-hover:text-blue-700"} transition-colors duration-250`}
+                  className={`w-6 h-6 ${
+                    isActive
+                      ? "text-white"
+                      : "text-blue-500 group-hover:text-blue-700"
+                  } transition-colors duration-250`}
                 />
                 <span className="font-medium">{link.name}</span>
                 {link.name === "Notifications" && hasUnread && (
@@ -93,6 +115,7 @@ const DashboardLayout = () => {
         </div>
       </aside>
 
+      {/* Main content */}
       <div className="flex-1 flex flex-col relative z-10">
         <header className="flex justify-between items-center bg-white px-10 py-5 border-b border-gray-100 shadow-md">
           <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
@@ -103,7 +126,9 @@ const DashboardLayout = () => {
               title="Notifications"
             >
               <Bell className="w-6 h-6" />
-              {hasUnread && <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white shadow-sm" />}
+              {hasUnread && (
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white shadow-sm" />
+              )}
             </NavLink>
 
             <NavLink
@@ -135,4 +160,3 @@ const DashboardLayout = () => {
 };
 
 export default DashboardLayout;
-
