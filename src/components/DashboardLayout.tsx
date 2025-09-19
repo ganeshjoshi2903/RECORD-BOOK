@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { BookOpen, Users, TrendingDown, Bell, User, LogOut, LayoutDashboard } from "lucide-react";
 import api from "../../api";
-
 const DashboardLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -136,3 +135,4 @@ const DashboardLayout = () => {
 };
 
 export default DashboardLayout;
+
