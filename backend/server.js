@@ -26,7 +26,7 @@ const PORT = process.env.PORT || 8000;
 // 🔹 Middleware
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://recordbook-3map.onrender.com"],
+    origin: ["http://localhost:5173", "https://recordbook-frontend.onrender.com/"],
     credentials: true,
   })
 );
@@ -103,4 +103,5 @@ mongoose
     );
   })
   .catch((err) => console.error("❌ MongoDB connection failed:", err.message));
+
 
