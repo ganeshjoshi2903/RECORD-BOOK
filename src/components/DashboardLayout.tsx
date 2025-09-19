@@ -10,7 +10,7 @@ import {
   LogOut,
   LayoutDashboard,
 } from "lucide-react";
-import api from "../../api";
+import api from "../api";  // ✅ go up one folder from components
 
 const DashboardLayout = () => {
   const navigate = useNavigate();
@@ -160,4 +160,5 @@ const DashboardLayout = () => {
 };
 
 export default DashboardLayout;
+
 
