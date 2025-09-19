@@ -10,7 +10,7 @@ import authRoutes from "./routes/authRoutes.js";
 import recordRoutes from "./routes/digitalRecordRoutes.js";
 import customerRoutes from "./routes/customerRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
-import profileRoutes from "./routes/profileRoutes.js";
+import profileRoutes from "./routes/profileroutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import muteRoutes from "./routes/muteroutes.js"; // Optional route for mute toggle
 
@@ -103,3 +103,4 @@ mongoose
     );
   })
   .catch((err) => console.error("❌ MongoDB connection failed:", err.message));
+
