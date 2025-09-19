@@ -10,9 +10,9 @@ import authRoutes from "./routes/authRoutes.js";
 import recordRoutes from "./routes/digitalRecordRoutes.js";
 import customerRoutes from "./routes/customerRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
-import profileRoutes from "./routes/profileroutes.js";
+import profileRoutes from "./routes/profileRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
-import muteRoutes from "./routes/muteroutes.js";
+import muteRoutes from "./routes/muteroutes.js"; // Optional route for mute toggle
 
 // Models
 import DigitalRecord from "./models/DigitalRecord.js";
@@ -23,37 +23,29 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-// ✅ Allowed Frontend URLs
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://recordbook-frontend.onrender.com",
-];
-
 // 🔹 Middleware
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: ["http://localhost:5173", "https://recordbook-3map.onrender.com"],
     credentials: true,
   })
 );
-
-app.options("*", cors()); // Preflight fix
 app.use(express.json());
 app.use(cookieParser());
 
-// 🔹 Routes
+
 app.use("/api/auth", authRoutes);
 app.use("/api/records", recordRoutes);
 app.use("/api/customers", customerRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/notifications", notificationRoutes);
-app.use("/api/mute", muteRoutes);
+app.use("/api/mute", muteRoutes); // optional
 
 // 🔹 Root
 app.get("/", (req, res) => res.send("✅ RecordBook Backend is Live!"));
 
-// 🔹 Cron job: daily reminders at midnight
+// 🔹 Cron job: run daily at midnight for reminders
 cron.schedule("0 0 * * *", async () => {
   try {
     const muteSetting = await MuteSetting.findOne({ key: "reminder" });
@@ -101,15 +93,12 @@ cron.schedule("0 0 * * *", async () => {
   }
 });
 
-// 🔹 MongoDB connection + server start
+// 🔹 Connect DB + start server
 mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
     console.log("✅ MongoDB connected successfully");
-    app.listen(PORT, "0.0.0.0", () =>
+    app.listen(PORT, () =>
       console.log(`🚀 Server running at http://localhost:${PORT}`)
     );
   })
