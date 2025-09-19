@@ -1,24 +1,34 @@
 import React, { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { BookOpen, Users, TrendingDown, Bell, User, LogOut, LayoutDashboard } from "lucide-react";
-import axios from "axios";
-
-const API_URL = import.meta.env.VITE_BACKEND_URL;
+import api from "../../api";
 
 const DashboardLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [hasUnread, setHasUnread] = useState(false);
 
+  const token = localStorage.getItem("token");
+  const axiosConfig = { headers: { Authorization: `Bearer ${token}` } };
+
+  // ✅ Check unread notifications
   const checkHasUnreadNotifications = async () => {
     try {
-      const res = await axios.get(`${API_URL}/api/notifications/unread`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
+      const res = await api.get("/api/notifications/unread", axiosConfig);
       setHasUnread(res.data.unread === true || res.data.count > 0);
     } catch (err) {
       console.error("Notification check failed:", err);
       setHasUnread(false);
+    }
+  };
+
+  // ✅ Mark all notifications as read when user visits Notifications page
+  const markAllAsRead = async () => {
+    try {
+      await api.patch("/api/notifications/read-all", {}, axiosConfig);
+      setHasUnread(false);
+    } catch (err) {
+      console.error("Failed to mark notifications as read:", err);
     }
   };
 
@@ -27,6 +37,12 @@ const DashboardLayout = () => {
     const interval = setInterval(checkHasUnreadNotifications, 10000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (location.pathname === "/dashboard/notifications") {
+      markAllAsRead();
+    }
+  }, [location.pathname]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -62,9 +78,7 @@ const DashboardLayout = () => {
                 } group focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75`}
               >
                 <link.icon
-                  className={`w-6 h-6 ${
-                    isActive ? "text-white" : "text-blue-500 group-hover:text-blue-700"
-                  } transition-colors duration-250`}
+                  className={`w-6 h-6 ${isActive ? "text-white" : "text-blue-500 group-hover:text-blue-700"} transition-colors duration-250`}
                 />
                 <span className="font-medium">{link.name}</span>
                 {link.name === "Notifications" && hasUnread && (
