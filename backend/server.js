@@ -12,7 +12,7 @@ import customerRoutes from "./routes/customerRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import profileRoutes from "./routes/profileroutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
-import muteRoutes from "./routes/muteroutes.js"; // Optional route for mute toggle
+import muteRoutes from "./routes/muteroutes.js";
 
 // Models
 import DigitalRecord from "./models/DigitalRecord.js";
@@ -23,29 +23,47 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-// 🔹 Middleware
-app.use(
-  cors({
-    origin: ["http://localhost:5173", "https://recordbook-frontend.onrender.com"],
-    credentials: true,
-  })
-);
+// 🔹 CORS Setup (handles preflight OPTIONS requests)
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://recordbook-frontend.onrender.com"
+];
+
+app.use(cors({
+  origin: function(origin, callback) {
+    // allow requests with no origin (like Postman or curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = `The CORS policy for this site does not allow access from the specified Origin.`;
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
+// Middleware
 app.use(express.json());
 app.use(cookieParser());
 
+// Preflight handling (optional but safer)
+app.options("*", cors());
 
+// 🔹 Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/records", recordRoutes);
 app.use("/api/customers", customerRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/notifications", notificationRoutes);
-app.use("/api/mute", muteRoutes); // optional
+app.use("/api/mute", muteRoutes);
 
 // 🔹 Root
 app.get("/", (req, res) => res.send("✅ RecordBook Backend is Live!"));
 
-// 🔹 Cron job: run daily at midnight for reminders
+// 🔹 Cron job: daily reminders at midnight
 cron.schedule("0 0 * * *", async () => {
   try {
     const muteSetting = await MuteSetting.findOne({ key: "reminder" });
@@ -103,6 +121,3 @@ mongoose
     );
   })
   .catch((err) => console.error("❌ MongoDB connection failed:", err.message));
-
-
-
