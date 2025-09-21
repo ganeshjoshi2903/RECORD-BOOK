@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Trash2, CheckCircle, Volume2, VolumeX, AlertCircle, Loader2 } from "lucide-react";
+import {
+  Trash2,
+  CheckCircle,
+  Volume2,
+  VolumeX,
+  AlertCircle,
+  Loader2,
+} from "lucide-react";
 import { createPortal } from "react-dom";
 import api from "../../api";
 
@@ -21,6 +28,7 @@ export default function Notifications() {
   const [loading, setLoading] = useState(true);
   const [muted, setMuted] = useState(false);
   const [toast, setToast] = useState<ToastMessage | null>(null);
+  const [hasUnread, setHasUnread] = useState(false);
 
   const token = localStorage.getItem("token");
   const axiosConfig = { headers: { Authorization: `Bearer ${token}` } };
@@ -30,19 +38,13 @@ export default function Notifications() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const fetchNotifications = async (markAllRead = false) => {
+  // 🔹 Fetch notifications
+  const fetchNotifications = async () => {
     try {
       const res = await api.get("/api/notifications", axiosConfig);
       let data: Notification[] = res.data;
-
       if (muted) data = data.filter((n) => n.type !== "reminder");
       setNotifications(data);
-
-      if (markAllRead && data.length > 0) {
-        const unreadIds = data.filter((n) => !n.isRead).map((n) => n._id);
-        await Promise.all(unreadIds.map((id) => api.patch(`/api/notifications/${id}/read`, {}, axiosConfig)));
-        setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-      }
     } catch {
       showToast({ type: "error", text: "Failed to load notifications." });
     } finally {
@@ -50,41 +52,77 @@ export default function Notifications() {
     }
   };
 
+  // 🔹 Fetch unread count
+  const fetchUnread = async () => {
+    try {
+      const res = await api.get("/api/notifications/unread", axiosConfig);
+      setHasUnread(res.data.unread);
+    } catch {
+      // ignore error silently
+    }
+  };
+
+  // 🔹 Fetch mute state
   const fetchMuteState = async () => {
     try {
-      const res = await api.get("/api/mute/reminder", axiosConfig);
+      const res = await api.get("/api/notifications/mute/reminders", axiosConfig);
       setMuted(res.data.muted);
     } catch {
       showToast({ type: "error", text: "Failed to fetch mute state." });
     }
   };
 
+  // 🔹 Toggle mute
   const toggleGlobalMute = async () => {
     try {
       const newMute = !muted;
-      await api.patch("/api/mute/reminder", { mute: newMute }, axiosConfig);
+      await api.patch(
+        "/api/notifications/mute/reminders",
+        { mute: newMute },
+        axiosConfig
+      );
       setMuted(newMute);
-      showToast({ type: "success", text: `Reminders ${newMute ? "muted" : "unmuted"}.` });
+      showToast({
+        type: "success",
+        text: `Reminders ${newMute ? "muted" : "unmuted"}.`,
+      });
       fetchNotifications();
     } catch {
       showToast({ type: "error", text: "Failed to toggle mute." });
     }
   };
 
+  // 🔹 Mark single as read
   const markAsRead = async (id: string) => {
     try {
       await api.patch(`/api/notifications/${id}/read`, {}, axiosConfig);
-      setNotifications((prev) => prev.map((n) => (n._id === id ? { ...n, isRead: true } : n)));
+      setNotifications((prev) =>
+        prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
+      );
+      fetchUnread();
     } catch {
       showToast({ type: "error", text: "Failed to mark as read." });
     }
   };
 
+  // 🔹 Mark all as read
+  const markAllAsRead = async () => {
+    try {
+      await api.patch("/api/notifications/read-all", {}, axiosConfig);
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      setHasUnread(false); // remove red dot instantly
+    } catch {
+      showToast({ type: "error", text: "Failed to mark all as read." });
+    }
+  };
+
+  // 🔹 Delete
   const deleteNotification = async (id: string) => {
     try {
       await api.delete(`/api/notifications/${id}`, axiosConfig);
       setNotifications((prev) => prev.filter((n) => n._id !== id));
       showToast({ type: "success", text: "Notification deleted." });
+      fetchUnread();
     } catch {
       showToast({ type: "error", text: "Failed to delete notification." });
     }
@@ -92,7 +130,10 @@ export default function Notifications() {
 
   useEffect(() => {
     if (token) {
-      fetchMuteState().then(() => fetchNotifications(true));
+      fetchMuteState().then(() => {
+        fetchNotifications();
+        fetchUnread();
+      });
     } else {
       setLoading(false);
       showToast({ type: "error", text: "Authentication token not found." });
@@ -113,41 +154,78 @@ export default function Notifications() {
       <div className="max-w-xl mx-auto p-8 rounded-3xl shadow-xl bg-white">
         {/* Header */}
         <div className="flex justify-between items-center mb-6 border-b pb-4">
-          <h1 className="text-3xl font-bold flex items-center gap-2">Notifications</h1>
-          <button
-            onClick={toggleGlobalMute}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-              muted ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-green-50 text-green-600 hover:bg-green-100"
-            }`}
-          >
-            {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-            {muted ? "Unmute Reminders" : "Mute Reminders"}
-          </button>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            Notifications
+            {hasUnread && (
+              <span className="ml-2 h-3 w-3 bg-red-500 rounded-full" />
+            )}
+          </h1>
+          <div className="flex gap-2">
+            <button
+              onClick={markAllAsRead}
+              className="px-3 py-2 rounded-full text-sm bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
+            >
+              Mark all as read
+            </button>
+            <button
+              onClick={toggleGlobalMute}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                muted
+                  ? "bg-red-50 text-red-600 hover:bg-red-100"
+                  : "bg-green-50 text-green-600 hover:bg-green-100"
+              }`}
+            >
+              {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+              {muted ? "Unmute Reminders" : "Mute Reminders"}
+            </button>
+          </div>
         </div>
 
         {/* Notifications List */}
         {notifications.length === 0 ? (
-          <p className="text-gray-500 text-center py-10">No notifications yet 🎉</p>
+          <p className="text-gray-500 text-center py-10">
+            No notifications yet 🎉
+          </p>
         ) : (
           <ul className="space-y-4">
             {notifications.map((n) => (
               <li
                 key={n._id}
                 className={`p-4 rounded-xl shadow-md border-l-4 ${
-                  n.isRead ? "bg-gray-50 border-gray-300" : "bg-white border-indigo-500"
+                  n.isRead
+                    ? "bg-gray-50 border-gray-300"
+                    : "bg-white border-indigo-500"
                 }`}
               >
                 <div className="flex justify-between items-center">
                   <div className="flex-1 pr-4">
-                    <p className={`font-medium ${n.isRead ? "text-gray-500" : "text-gray-800"}`}>{n.message}</p>
-                    <small className="text-gray-400 text-xs">{new Date(n.date).toLocaleString()}</small>
+                    <p
+                      className={`font-medium ${
+                        n.isRead ? "text-gray-500" : "text-gray-800"
+                      }`}
+                    >
+                      {n.message}
+                    </p>
+                    <small className="text-gray-400 text-xs">
+                      {new Date(n.date).toLocaleString()}
+                    </small>
                   </div>
                   <div className="flex items-center gap-2">
-                    {!n.isRead && <span className="px-2 py-1 text-xs rounded-full font-semibold bg-red-100 text-red-600">NEW</span>}
-                    <button onClick={() => markAsRead(n._id)} className="p-2 rounded-full hover:bg-green-100 text-green-600">
+                    {!n.isRead && (
+                      <span className="px-2 py-1 text-xs rounded-full font-semibold bg-red-100 text-red-600">
+                        NEW
+                      </span>
+                    )}
+                    <button
+                      onClick={() => markAsRead(n._id)}
+                      className="p-2 rounded-full hover:bg-green-100 text-green-600"
+                    >
                       <CheckCircle size={18} />
                     </button>
-                    <button onClick={() => deleteNotification(n._id)} className="p-2 rounded-full hover:bg-red-100 text-red-600">
+                    <button
+                      onClick={() => deleteNotification(n._id)}
+                      className="p-2 rounded-full hover:bg-red-100 text-red-600"
+                    >
                       <Trash2 size={18} />
                     </button>
                   </div>
@@ -166,7 +244,11 @@ export default function Notifications() {
               toast.type === "success" ? "bg-green-500" : "bg-red-500"
             }`}
           >
-            {toast.type === "success" ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+            {toast.type === "success" ? (
+              <CheckCircle size={16} />
+            ) : (
+              <AlertCircle size={16} />
+            )}
             {toast.text}
           </div>,
           document.body
