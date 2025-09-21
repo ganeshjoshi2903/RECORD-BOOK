@@ -10,7 +10,7 @@ import {
   LogOut,
   LayoutDashboard,
 } from "lucide-react";
-import api from "../api";  // ✅ go up one folder from components
+import api from "../api";
 
 const DashboardLayout = () => {
   const navigate = useNavigate();
@@ -19,7 +19,7 @@ const DashboardLayout = () => {
 
   const token = localStorage.getItem("token");
 
-  // Check unread notifications
+  // ✅ Check unread notifications
   const checkHasUnreadNotifications = async () => {
     try {
       const res = await api.get("/api/notifications/unread", {
@@ -32,26 +32,28 @@ const DashboardLayout = () => {
     }
   };
 
-  // Mark all notifications as read when visiting Notifications page
+  // ✅ Mark all as read (clear red dot)
   const markAllAsRead = async () => {
     try {
-      await api.patch("/api/notifications/read-all", {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.patch(
+        "/api/notifications/read-all",
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setHasUnread(false);
     } catch (err) {
       console.error("Failed to mark notifications as read:", err);
     }
   };
 
-  // Run every 10s to check unread notifications
+  // 🔄 Polling every 10 seconds
   useEffect(() => {
     checkHasUnreadNotifications();
     const interval = setInterval(checkHasUnreadNotifications, 10000);
     return () => clearInterval(interval);
   }, []);
 
-  // Clear red dot on Notifications page
+  // 📍 Clear red dot when visiting Notifications page
   useEffect(() => {
     if (location.pathname === "/dashboard/notifications") {
       markAllAsRead();
@@ -92,7 +94,7 @@ const DashboardLayout = () => {
                   isActive
                     ? "bg-blue-600 text-white shadow-lg scale-[1.02] font-semibold"
                     : "text-gray-700 hover:bg-blue-50 hover:text-blue-700 hover:shadow-md"
-                } group focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75`}
+                } group focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75 relative`}
               >
                 <link.icon
                   className={`w-6 h-6 ${
@@ -102,6 +104,8 @@ const DashboardLayout = () => {
                   } transition-colors duration-250`}
                 />
                 <span className="font-medium">{link.name}</span>
+
+                {/* 🔴 Red dot on Sidebar */}
                 {link.name === "Notifications" && hasUnread && (
                   <span className="absolute top-3 right-3 w-3 h-3 bg-red-500 rounded-full border-2 border-white shadow-sm" />
                 )}
@@ -120,6 +124,7 @@ const DashboardLayout = () => {
         <header className="flex justify-between items-center bg-white px-10 py-5 border-b border-gray-100 shadow-md">
           <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
           <div className="flex items-center space-x-6">
+            {/* 🔔 Bell icon with red dot */}
             <NavLink
               to="/dashboard/notifications"
               className="relative text-gray-500 hover:text-blue-600 transition-colors duration-200 p-2 rounded-full hover:bg-gray-100"
@@ -131,6 +136,7 @@ const DashboardLayout = () => {
               )}
             </NavLink>
 
+            {/* 👤 Profile */}
             <NavLink
               to="/dashboard/profile"
               className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 hover:bg-blue-200 transition-colors duration-200 shadow-sm"
@@ -139,6 +145,7 @@ const DashboardLayout = () => {
               <User className="w-6 h-6 text-blue-700" />
             </NavLink>
 
+            {/* 🚪 Logout */}
             <button
               onClick={handleLogout}
               className="flex items-center space-x-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-5 py-2.5 rounded-full shadow-lg transition-all duration-250 transform hover:scale-105 active:scale-95 text-base font-semibold"
@@ -149,6 +156,7 @@ const DashboardLayout = () => {
           </div>
         </header>
 
+        {/* Page Content */}
         <main className="flex-1 p-8 bg-gray-100 overflow-auto">
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-200 min-h-[calc(100vh-180px)]">
             <Outlet />
@@ -160,5 +168,3 @@ const DashboardLayout = () => {
 };
 
 export default DashboardLayout;
-
-
