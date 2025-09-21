@@ -19,15 +19,15 @@ const DashboardLayout = () => {
 
   const token = localStorage.getItem("token");
 
-  // ✅ Check unread notifications
-  const checkHasUnreadNotifications = async () => {
+  // ✅ Fetch unread notifications count
+  const fetchUnreadNotifications = async () => {
     try {
       const res = await api.get("/api/notifications/unread", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setHasUnread(res.data.unread === true || res.data.count > 0);
+      setHasUnread(res.data.count > 0);
     } catch (err) {
-      console.error("Notification check failed:", err);
+      console.error("Failed to fetch unread notifications:", err);
       setHasUnread(false);
     }
   };
@@ -46,14 +46,14 @@ const DashboardLayout = () => {
     }
   };
 
-  // 🔄 Polling every 10 seconds
+  // 🔄 Poll unread every 10s
   useEffect(() => {
-    checkHasUnreadNotifications();
-    const interval = setInterval(checkHasUnreadNotifications, 10000);
+    fetchUnreadNotifications();
+    const interval = setInterval(fetchUnreadNotifications, 10000);
     return () => clearInterval(interval);
   }, []);
 
-  // 📍 Clear red dot when visiting Notifications page
+  // 📍 Clear red dot when user opens Notifications page
   useEffect(() => {
     if (location.pathname === "/dashboard/notifications") {
       markAllAsRead();
