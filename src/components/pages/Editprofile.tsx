@@ -1,5 +1,4 @@
 // src/components/pages/EditProfile.tsx
-import.meta.env.VITE_BACKEND_URL;
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -9,23 +8,33 @@ const EditProfile = () => {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
-const API_URL = import.meta.env.VITE_BACKEND_URL;
+
+  // ✅ Universal API base URL (works both local & Render)
+  const API_URL =
+    import.meta.env.VITE_API_URL || "http://localhost:8000";
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(`${API_URL}/api/auth/profile`, {
+        if (!token) {
+          setMessage("Unauthorized: Please log in again.");
+          navigate("/login");
+          return;
+        }
+
+        const res = await axios.get(`${API_URL}/api/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         setForm({
-          name: res.data.user.name,
-          email: res.data.user.email,
+          name: res.data.name,
+          email: res.data.email,
         });
-
-        setLoading(false);
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching user:", err);
+        setMessage("Error fetching profile data.");
+      } finally {
         setLoading(false);
       }
     };
@@ -33,27 +42,28 @@ const API_URL = import.meta.env.VITE_BACKEND_URL;
     fetchUser();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm({ ...form, [e.target.name]: e.target.value });
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.put(
-        `${API_URL}/api/profile/update`,
-        form,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      if (!token) {
+        setMessage("Unauthorized: Please log in again.");
+        navigate("/login");
+        return;
+      }
 
-      setMessage(res.data.message || "Profile updated successfully");
-      setTimeout(() => navigate("/dashboard/profile"), 1500);
+      const res = await axios.put(`${API_URL}/api/profile`, form, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setMessage(res.data.message || "Profile updated successfully!");
+      setTimeout(() => navigate("/dashboard/profile"), 1200);
     } catch (err: any) {
-      setMessage(err.response?.data?.message || "Error updating profile");
+      console.error("Update error:", err);
+      setMessage(err.response?.data?.message || "Error updating profile.");
     }
   };
 
@@ -62,7 +72,6 @@ const API_URL = import.meta.env.VITE_BACKEND_URL;
   return (
     <div className="max-w-md mx-auto mt-10 bg-white p-6 rounded shadow">
       <h2 className="text-xl font-semibold mb-4">Edit Profile</h2>
-
       {message && <p className="text-blue-600 mb-4">{message}</p>}
 
       <form onSubmit={handleSubmit}>
@@ -75,7 +84,6 @@ const API_URL = import.meta.env.VITE_BACKEND_URL;
           className="w-full px-3 py-2 mb-4 border rounded"
           required
         />
-
         <label className="block mb-2 text-sm font-medium">Email</label>
         <input
           type="email"
@@ -85,7 +93,6 @@ const API_URL = import.meta.env.VITE_BACKEND_URL;
           className="w-full px-3 py-2 mb-4 border rounded"
           required
         />
-
         <button
           type="submit"
           className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"

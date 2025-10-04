@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-import axios from "axios";
+import api from "../../api/axiosConfig";
 
 const ForgotPassword: React.FC = () => {
   const navigate = useNavigate();
@@ -9,7 +9,6 @@ const ForgotPassword: React.FC = () => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const API_URL = import.meta.env.VITE_API_URL;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,7 +17,7 @@ const ForgotPassword: React.FC = () => {
     setLoading(true);
 
     try {
-      const res = await axios.post(`${API_URL}/api/auth/forgot-password`, { email });
+      const res = await api.post("/api/auth/forgot-password", { email });
       setMessage(res.data.message);
     } catch (err: any) {
       setError(err.response?.data?.message || "Something went wrong.");
@@ -35,7 +34,9 @@ const ForgotPassword: React.FC = () => {
         </h2>
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-600">Email</label>
+            <label className="block text-sm font-medium text-gray-600">
+              Email
+            </label>
             <input
               type="email"
               value={email}
@@ -46,7 +47,11 @@ const ForgotPassword: React.FC = () => {
             />
           </div>
           {(message || error) && (
-            <p className={`text-center text-sm ${message ? "text-green-600" : "text-red-500"}`}>
+            <p
+              className={`text-center text-sm ${
+                message ? "text-green-600" : "text-red-500"
+              }`}
+            >
               {message || error}
             </p>
           )}
@@ -58,7 +63,10 @@ const ForgotPassword: React.FC = () => {
             {loading ? "Sending..." : "Send Reset Link"}
           </button>
         </form>
-        <p className="mt-5 text-center text-sm text-gray-500 cursor-pointer hover:underline" onClick={() => navigate("/login")}>
+        <p
+          className="mt-5 text-center text-sm text-gray-500 cursor-pointer hover:underline"
+          onClick={() => navigate("/login")}
+        >
           <ArrowLeftIcon className="inline h-4 w-4 mr-1" /> Back to Login
         </p>
       </div>

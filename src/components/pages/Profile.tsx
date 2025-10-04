@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+// src/components/pages/Profile.tsx
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import {
   Mail,
@@ -16,6 +17,7 @@ import {
 } from "lucide-react";
 import { createPortal } from "react-dom";
 
+// ----- Types -----
 interface ProfileData {
   _id: string;
   name: string;
@@ -33,35 +35,102 @@ interface PasswordData {
   newPassword: string;
 }
 
-const Profile = () => {
+// ----- Memoized Message Component -----
+const MemoizedMessage = React.memo(
+  ({ message }: { message: { type: "success" | "error"; text: string } | null }) => {
+    if (!message) return null;
+    return (
+      <div
+        className={`fixed bottom-8 left-1/2 -translate-x-1/2 text-white px-6 py-3 rounded-full shadow-xl text-sm flex items-center gap-2 z-50 transition-all duration-300 animate-slide-in-up ${
+          message.type === "success" ? "bg-green-500" : "bg-red-500"
+        }`}
+      >
+        {message.type === "success" ? <Save size={18} /> : <AlertCircle size={18} />}
+        {message.text}
+      </div>
+    );
+  }
+);
+
+// ----- Memoized Modal Component -----
+interface ModalProps {
+  title: string;
+  onClose: () => void;
+  onSave: () => void;
+  saving: boolean;
+  children: React.ReactNode;
+}
+
+const MemoizedModal = React.memo(({ title, onClose, onSave, saving, children }: ModalProps) => {
+  return createPortal(
+    <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-[100] p-4 animate-fade-in">
+      <div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl relative animate-scale-in">
+        <div className="flex justify-between items-center mb-6 border-b pb-4">
+          <h3 className="text-xl font-bold text-gray-800">{title}</h3>
+          <X
+            size={22}
+            className="cursor-pointer text-gray-500 hover:text-gray-800"
+            onClick={onClose}
+          />
+        </div>
+        {children}
+        <div className="flex justify-end gap-3 mt-6">
+          <button
+            onClick={onClose}
+            className="flex items-center gap-2 px-5 py-2 bg-gray-100 rounded-xl text-gray-700 font-medium hover:bg-gray-200 transition"
+          >
+            <X size={16} /> Cancel
+          </button>
+          <button
+            onClick={onSave}
+            disabled={saving}
+            className="flex items-center gap-2 px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold shadow-md hover:shadow-lg transition disabled:opacity-50"
+          >
+            {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+            Save
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+});
+
+// ----- Main Profile Component -----
+const Profile: React.FC = () => {
   const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(
+    null
+  );
+
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
   const [formData, setFormData] = useState<FormData>({ name: "", email: "" });
   const [passwordData, setPasswordData] = useState<PasswordData>({
     currentPassword: "",
     newPassword: "",
   });
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
 
- const API_URL = import.meta.env.VITE_API_URL;
+  const API_URL = import.meta.env.VITE_API_URL;
   const token = typeof localStorage !== "undefined" ? localStorage.getItem("token") : null;
 
-  const fetchProfile = async () => {
+  // ----- Fetch Profile -----
+  const fetchProfile = useCallback(async () => {
     try {
       const res = await axios.get(`${API_URL}/api/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProfile(res.data);
       setFormData({ name: res.data.name, email: res.data.email });
-    } catch (err) {
+    } catch {
       setMessage({ type: "error", text: "❌ Failed to load profile." });
     } finally {
       setLoading(false);
     }
-  };
+  }, [API_URL, token]);
 
   useEffect(() => {
     if (token) fetchProfile();
@@ -69,16 +138,17 @@ const Profile = () => {
       setMessage({ type: "error", text: "⚠️ No token found. Please log in." });
       setLoading(false);
     }
-  }, []);
+  }, [fetchProfile, token]);
 
+  // ----- Auto-clear messages -----
   useEffect(() => {
-    if (message) {
-      const timer = setTimeout(() => setMessage(null), 3000);
-      return () => clearTimeout(timer);
-    }
+    if (!message) return;
+    const timer = setTimeout(() => setMessage(null), 3000);
+    return () => clearTimeout(timer);
   }, [message]);
 
-  const handleEditSubmit = async () => {
+  // ----- Handlers -----
+  const handleEditSubmit = useCallback(async () => {
     try {
       setSaving(true);
       const res = await axios.put(`${API_URL}/api/profile`, formData, {
@@ -87,7 +157,7 @@ const Profile = () => {
       setProfile(res.data);
       setShowEditModal(false);
       setMessage({ type: "success", text: "✅ Profile updated successfully!" });
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage =
         axios.isAxiosError(error) && error.response?.data?.message
           ? error.response.data.message
@@ -96,9 +166,9 @@ const Profile = () => {
     } finally {
       setSaving(false);
     }
-  };
+  }, [API_URL, formData, token]);
 
-  const handlePasswordSubmit = async () => {
+  const handlePasswordSubmit = useCallback(async () => {
     try {
       setSaving(true);
       await axios.put(`${API_URL}/api/profile/password`, passwordData, {
@@ -107,7 +177,7 @@ const Profile = () => {
       setPasswordData({ currentPassword: "", newPassword: "" });
       setShowPasswordModal(false);
       setMessage({ type: "success", text: "✅ Password updated!" });
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage =
         axios.isAxiosError(error) && error.response?.data?.message
           ? error.response.data.message
@@ -116,28 +186,44 @@ const Profile = () => {
     } finally {
       setSaving(false);
     }
-  };
+  }, [API_URL, passwordData, token]);
 
-  const MemoizedProfileDisplay = React.memo(() => {
-    if (loading) {
-      return (
-        <div className="h-screen flex flex-col justify-center items-center text-lg text-gray-600">
-          <Loader2 className="animate-spin mr-2 text-purple-500" size={32} />
-          <span className="mt-4">Loading profile...</span>
-        </div>
-      );
-    }
-
-    if (!profile) {
-      return (
-        <div className="h-screen flex flex-col justify-center items-center text-lg text-red-500">
-          <AlertCircle className="mr-2" size={32} />
-          <span className="mt-4">Profile not found.</span>
-        </div>
-      );
-    }
-
+  // ----- JSX -----
+  if (loading) {
     return (
+      <div className="h-screen flex flex-col justify-center items-center text-lg text-gray-600">
+        <Loader2 className="animate-spin mr-2 text-purple-500" size={32} />
+        <span className="mt-4">Loading profile...</span>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="h-screen flex flex-col justify-center items-center text-lg text-red-500">
+        <AlertCircle className="mr-2" size={32} />
+        <span className="mt-4">Profile not found.</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-indigo-100 to-white py-16 px-4 font-sans text-gray-800">
+      <style>
+        {`
+          @keyframes slide-in-up {
+            from { opacity: 0; transform: translateY(100px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          .animate-slide-in-up { animation: slide-in-up 0.5s ease-out forwards; }
+          @keyframes fade-in { from {opacity:0;} to {opacity:1;} }
+          .animate-fade-in { animation: fade-in 0.3s ease-out forwards; }
+          @keyframes scale-in { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+          .animate-scale-in { animation: scale-in 0.4s cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
+        `}
+      </style>
+
+      {/* Profile Card */}
       <div className="max-w-3xl mx-auto p-10 rounded-3xl bg-white/30 backdrop-blur-lg shadow-xl border border-white/40">
         <div className="flex flex-col md:flex-row items-center md:items-start md:space-x-10">
           <div className="flex-shrink-0 relative mb-6 md:mb-0">
@@ -183,94 +269,11 @@ const Profile = () => {
           </p>
         </div>
       </div>
-    );
-  });
 
-  const MemoizedMessage = React.memo(() => {
-    return (
-      <>
-        {message && (
-          <div
-            className={`fixed bottom-8 left-1/2 -translate-x-1/2 text-white px-6 py-3 rounded-full shadow-xl text-sm flex items-center gap-2 z-50 transition-all duration-300 animate-slide-in-up ${
-              message.type === "success" ? "bg-green-500" : "bg-red-500"
-            }`}
-          >
-            {message.type === "success" ? <Save size={18} /> : <AlertCircle size={18} />}
-            {message.text}
-          </div>
-        )}
-      </>
-    );
-  });
+      {/* Messages */}
+      <MemoizedMessage message={message} />
 
-  const MemoizedModal = React.memo(
-    ({
-      title,
-      onClose,
-      onSave,
-      saving,
-      children,
-    }: {
-      title: string;
-      onClose: () => void;
-      onSave: () => void;
-      saving: boolean;
-      children: React.ReactNode;
-    }) => {
-      return createPortal(
-        <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-[100] p-4 animate-fade-in">
-          <div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl relative animate-scale-in">
-            <div className="flex justify-between items-center mb-6 border-b pb-4">
-              <h3 className="text-xl font-bold text-gray-800">{title}</h3>
-              <X
-                size={22}
-                className="cursor-pointer text-gray-500 hover:text-gray-800"
-                onClick={onClose}
-              />
-            </div>
-            {children}
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={onClose}
-                className="flex items-center gap-2 px-5 py-2 bg-gray-100 rounded-xl text-gray-700 font-medium hover:bg-gray-200 transition"
-              >
-                <X size={16} /> Cancel
-              </button>
-              <button
-                onClick={onSave}
-                disabled={saving}
-                className="flex items-center gap-2 px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold shadow-md hover:shadow-lg transition disabled:opacity-50"
-              >
-                {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-                Save
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      );
-    }
-  );
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-indigo-100 to-white py-16 px-4 font-sans text-gray-800">
-      <style>
-        {`
-          @keyframes slide-in-up {
-            from { opacity: 0; transform: translateY(100px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-          .animate-slide-in-up { animation: slide-in-up 0.5s ease-out forwards; }
-          @keyframes fade-in { from {opacity:0;} to {opacity:1;} }
-          .animate-fade-in { animation: fade-in 0.3s ease-out forwards; }
-          @keyframes scale-in { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-          .animate-scale-in { animation: scale-in 0.4s cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
-        `}
-      </style>
-
-      <MemoizedProfileDisplay />
-      <MemoizedMessage />
-
+      {/* Edit Profile Modal */}
       {showEditModal && (
         <MemoizedModal
           title="Edit Profile"
@@ -290,10 +293,7 @@ const Profile = () => {
               />
             </div>
             <div className="relative">
-              <AtSign
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                size={18}
-              />
+              <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <input
                 type="email"
                 value={formData.email}
@@ -306,6 +306,7 @@ const Profile = () => {
         </MemoizedModal>
       )}
 
+      {/* Change Password Modal */}
       {showPasswordModal && (
         <MemoizedModal
           title="Change Password"
@@ -315,32 +316,22 @@ const Profile = () => {
         >
           <div className="space-y-4">
             <div className="relative">
-              <KeyRound
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                size={18}
-              />
+              <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <input
                 type="password"
                 placeholder="Current Password"
                 value={passwordData.currentPassword}
-                onChange={(e) =>
-                  setPasswordData({ ...passwordData, currentPassword: e.target.value })
-                }
+                onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                 className="w-full border border-gray-300 pl-10 pr-4 py-2.5 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
               />
             </div>
             <div className="relative">
-              <Lock
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                size={18}
-              />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <input
                 type="password"
                 placeholder="New Password"
                 value={passwordData.newPassword}
-                onChange={(e) =>
-                  setPasswordData({ ...passwordData, newPassword: e.target.value })
-                }
+                onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                 className="w-full border border-gray-300 pl-10 pr-4 py-2.5 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
               />
             </div>
@@ -352,4 +343,3 @@ const Profile = () => {
 };
 
 export default Profile;
-
