@@ -1,4 +1,3 @@
-// src/components/pages/Notifications.tsx
 import React, { useEffect, useState } from "react";
 import {
   Trash2,
@@ -9,7 +8,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { createPortal } from "react-dom";
-import api from "../../api/axiosConfig"; // centralized axios instance
+import api from "../../api/axiosConfig";
 
 interface Notification {
   _id: string;
@@ -33,14 +32,20 @@ export default function Notifications() {
   const token = localStorage.getItem("token");
   const axiosConfig = { headers: { Authorization: `Bearer ${token}` } };
 
-  // Show toast
   const showToast = (message: ToastMessage) => {
     setToast(message);
     setTimeout(() => setToast(null), 3000);
   };
 
-  // Red dot state
-  const hasUnread = notifications.some((n) => !n.isRead);
+  // Fetch mute state
+  const fetchMuteState = async () => {
+    try {
+      const res = await api.get("/api/notifications/mute/reminders", axiosConfig);
+      setMuted(res.data.muted ?? false);
+    } catch {
+      showToast({ type: "error", text: "Failed to fetch mute state." });
+    }
+  };
 
   // Fetch notifications
   const fetchNotifications = async () => {
@@ -51,23 +56,11 @@ export default function Notifications() {
         : res.data.notifications ?? [];
 
       if (muted) data = data.filter((n) => n.type !== "reminder");
-
       setNotifications(data);
-    } catch (err) {
-      console.error(err);
+    } catch {
       showToast({ type: "error", text: "Failed to load notifications." });
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Fetch mute state
-  const fetchMuteState = async () => {
-    try {
-      const res = await api.get("/api/notifications/mute/reminders", axiosConfig);
-      setMuted(res.data.muted ?? false);
-    } catch {
-      showToast({ type: "error", text: "Failed to fetch mute state." });
     }
   };
 
@@ -84,6 +77,16 @@ export default function Notifications() {
       fetchNotifications();
     } catch {
       showToast({ type: "error", text: "Failed to toggle mute." });
+    }
+  };
+
+  // Mark all notifications as read
+  const markAllAsRead = async () => {
+    try {
+      await api.patch("/api/notifications/read-all", {}, axiosConfig);
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    } catch {
+      showToast({ type: "error", text: "Failed to mark all as read." });
     }
   };
 
@@ -110,10 +113,10 @@ export default function Notifications() {
     }
   };
 
-  // On mount
+  // Load data on page open
   useEffect(() => {
     if (token) {
-      fetchMuteState().then(() => fetchNotifications());
+      fetchMuteState().then(() => fetchNotifications().then(() => markAllAsRead()));
     } else {
       setLoading(false);
       showToast({ type: "error", text: "Authentication token not found." });
@@ -132,12 +135,8 @@ export default function Notifications() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-white py-12 px-4 font-sans text-gray-800">
       <div className="max-w-xl mx-auto p-8 rounded-3xl shadow-xl bg-white">
-        {/* Header */}
         <div className="flex justify-between items-center mb-6 border-b pb-4">
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            Notifications
-            {hasUnread && <span className="ml-2 h-3 w-3 bg-red-500 rounded-full" />}
-          </h1>
+          <h1 className="text-3xl font-bold flex items-center gap-2">Notifications</h1>
           <button
             onClick={toggleGlobalMute}
             className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
@@ -151,7 +150,6 @@ export default function Notifications() {
           </button>
         </div>
 
-        {/* Notifications List */}
         {notifications.length === 0 ? (
           <p className="text-gray-500 text-center py-10">No notifications yet 🎉</p>
         ) : (
@@ -198,7 +196,6 @@ export default function Notifications() {
         )}
       </div>
 
-      {/* Toast */}
       {toast &&
         createPortal(
           <div

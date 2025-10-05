@@ -37,7 +37,7 @@ app.use(
       if (allowedOrigins.includes(origin)) return callback(null, true);
       return callback(new Error("CORS policy: Origin not allowed"));
     },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,
     allowedHeaders: [
       "Origin",
